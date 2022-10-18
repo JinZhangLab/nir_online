@@ -1,8 +1,41 @@
+import io
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from pynir.Calibration import regresssionReport
 from collections import Counter
+import pandas as pd
+
+#@st.cache
+def convert_fig(fig,figFormat = "pdf"):
+    img = io.BytesIO()
+    fig.savefig(img, format=figFormat)
+    return img
+
+def download_img(fig, fileName = "Figure"):
+    figFormat =  'pdf'
+    img = convert_fig(fig,figFormat = figFormat)
+    st.download_button(
+        label="Download image",
+        data=img,
+        file_name= fileName + "." + figFormat,
+        mime="image/"+figFormat,
+    )
+
+#@st.cache
+def convert_csv(data,columns = None):
+    if not isinstance(data, pd.core.frame.DataFrame):
+        data = pd.DataFrame(data = data, columns=columns)
+    return data.to_csv().encode('utf-8')
+    
+def download_csv(data, fileName = "data", columns = None):
+    csv = convert_csv(data, columns=columns)
+    st.download_button(
+        label="Download data",
+        data=csv,
+        file_name= fileName + '.csv',
+        mime='text/csv',
+    )
 # Common plots
 def plotSPC(X,wv=None):
     if wv is None:
@@ -13,7 +46,12 @@ def plotSPC(X,wv=None):
     ax.set_ylabel('Intensity (A.U.)')
     ax.set_title('NIR spectra', loc='center')
     st.pyplot(fig)
+    fig.tight_layout()
 
+    download_img(fig, fileName = "NIRSpectra")
+
+
+    
 # display reference values for regression
 def plotRef(y):
     fig, ax = plt.subplots()
@@ -22,6 +60,7 @@ def plotRef(y):
     ax.set_ylabel('Count')
     ax.set_title('Reference values', loc='center')
     st.pyplot(fig)
+    download_img(fig, fileName = "ReferenceValues")
     
 # display reference values for classification 
 def plotRef_clf(y):
@@ -32,7 +71,7 @@ def plotRef_clf(y):
     ax.set_ylabel('Count')
     ax.set_title('Reference values', loc='center')
     st.pyplot(fig)
-
+    download_img(fig, fileName = "ReferenceValues")
 
 ## plot for regression by pls
 # plot rmsecv variation against lv
@@ -48,6 +87,7 @@ def plotRMSECV(rmsec, rmsecv):
     ax.legend()
     ax.set_title("Variation of RMSE with nLV in calibration and cross validation")
     st.pyplot(fig)
+    download_img(fig, fileName = "RMSECV")
 
 # plot rmsecv variation against lv
 def plotR2CV(r2, r2cv):
@@ -62,8 +102,7 @@ def plotR2CV(r2, r2cv):
     ax.set_title("Variation of R$^2$ with nLV in calibration and cross validation")
     ax.legend()
     st.pyplot(fig)
-    
-
+    download_img(fig, fileName = "R2CV")
 
 
 def plotPredictionCV(y,yhat,yhat_cv):
@@ -83,6 +122,7 @@ def plotPredictionCV(y,yhat,yhat_cv):
     ax.legend(loc='upper left', bbox_to_anchor=(0.0, 1.0))
     ax.set_title("Cross validation results")
     st.pyplot(fig)
+    download_img(fig, fileName = "PredictionCV")
     
 def plotPrediction(y,yhat):
     report = regresssionReport(y,yhat)
@@ -98,6 +138,7 @@ def plotPrediction(y,yhat):
     ax.legend(loc='upper left', bbox_to_anchor=(0.0, 1.0))
     ax.set_title("Prediction results")
     st.pyplot(fig)
+    download_img(fig, fileName = "Prediction")
 
 def plotRegressionCoefficients(b,wv=None):
     if wv==None:
@@ -108,6 +149,7 @@ def plotRegressionCoefficients(b,wv=None):
     ax.set_ylabel("Coefficients")
     ax.set_title("Regression coefficients")
     st.pyplot(fig)
+    download_img(fig, fileName = "RegressionCoefficients")
 
 
 ## plot for classfication by plsda
@@ -122,6 +164,7 @@ def plotAccuracyCV(accuracy_cv,labels = 'accuracy'):
     ax.set_title("Variation of "+labels+" with nLV in calibration and cross validation")
     ax.legend()
     st.pyplot(fig)
+    download_img(fig, fileName = "AccuracyCV")
 
 def plot_confusion_matrix(cm,
                           target_names,
@@ -199,5 +242,6 @@ def plot_confusion_matrix(cm,
     plt.ylabel('True label')
     plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     st.pyplot(fig)
+    download_img(fig, fileName = title)
 
     

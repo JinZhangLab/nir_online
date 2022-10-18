@@ -5,7 +5,7 @@ import pandas as pd
 
 from pynir.Calibration import pls, regresssionReport
 
-from display import (plotSPC, plotRef, plotRMSECV, plotR2CV, 
+from display import (plotSPC, plotRef, plotRMSECV, plotR2CV, download_csv,
                      plotPredictionCV,plotPrediction, plotRegressionCoefficients)
 
 def step1():
@@ -35,7 +35,7 @@ def step1():
 def step2():
     X = st.session_state["X"]
     y = st.session_state["y"]
-    st.markdown("# 2. Cross validtion for selecting optimal number of PLS components.")
+    st.markdown("# 2. Cross validtion")
     with st.expander("Set parameters manually for cross validation"):
         ncomp = st.slider("The max number of component in pls calibration.",1,20,10)
         nfold = st.slider("The number of fold in cross validation.",2,20,10)
@@ -80,7 +80,7 @@ def step3():
     plsModel = st.session_state["plsModel"]
     plsModel.optLV
 
-    st.markdown("# 3. Validation of the estabilished model.")
+    st.markdown("# 3. Validation.")
     
     st.markdown("### Import your NIR spectra data for prediction")
     uploaded_file = st.file_uploader("X for prediction",
@@ -96,7 +96,9 @@ def step3():
         with col2:
             st.markdown("### Prediction results")
             st.dataframe(pd.DataFrame(data=yhat,columns=["Prediction"]))
-            
+            download_csv(yhat, fileName = "Prediction", 
+                         columns = ["Prediction"])
+             
         st.markdown("### Import your reference values for validating the prediction")      
         uploaded_file = st.file_uploader("y for prediction",
                                          "csv",label_visibility = "hidden")
