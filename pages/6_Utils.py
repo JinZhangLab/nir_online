@@ -5,7 +5,7 @@ import pandas as pd
 
 from pynir.utils import simulateNIR
 
-from display import plotSPC, plotRef
+from tools.display import plotSPC, plotRef
 
 
 with st.sidebar:

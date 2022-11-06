@@ -1,47 +1,23 @@
-import io
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from pynir.Calibration import regresssionReport
 from collections import Counter
-import pandas as pd
 
-#@st.cache
-def convert_fig(fig,figFormat = "pdf"):
-    img = io.BytesIO()
-    fig.savefig(img, format=figFormat)
-    return img
+from .dataManipulation import download_img
 
-def download_img(fig, fileName = "Figure"):
-    figFormat =  'pdf'
-    img = convert_fig(fig,figFormat = figFormat)
-    st.download_button(
-        label="Download image",
-        data=img,
-        file_name= fileName + "." + figFormat,
-        mime="image/"+figFormat,
-    )
-
-#@st.cache
-def convert_csv(data,columns = None):
-    if not isinstance(data, pd.core.frame.DataFrame):
-        data = pd.DataFrame(data = data, columns=columns)
-    return data.to_csv().encode('utf-8')
-    
-def download_csv(data, fileName = "data", columns = None):
-    csv = convert_csv(data, columns=columns)
-    st.download_button(
-        label="Download data",
-        data=csv,
-        file_name= fileName + '.csv',
-        mime='text/csv',
-    )
 # Common plots
 def plotSPC(X,wv=None):
     if wv is None:
         wv = np.arange(X.shape[1])
     fig, ax = plt.subplots()
-    ax.plot(wv, np.transpose(X))
+    if wv.shape[0] == X.shape[0]:
+        ax.plot(wv, np.array(X))
+    elif wv.shape[0] == X.shape[1]:
+        ax.plot(wv, np.transpose(X))
+    else:
+        raise("The data dimension does not match!")
+    
     ax.set_xlabel('Wavelength (nm)')
     ax.set_ylabel('Intensity (A.U.)')
     ax.set_title('NIR spectra', loc='center')

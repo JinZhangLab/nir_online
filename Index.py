@@ -50,7 +50,7 @@ st.markdown('''
 </div>
 
 <div class = "largeFrame">
-    <a href="./Data_Preprocessing" class="button">Regression</a>
+    <a href="./Data_Preprocessing" class="button">Data Preprocessing</a>
     <div class="smllFrame">
       <p>
          This is a all-in-one, user-frendily graphical module for data preprocessing of NIR spectra. (In developing)
