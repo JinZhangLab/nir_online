@@ -24,11 +24,31 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
     
     ## Obtain standard spectra
     if dataSource == "Tablet":
+        st.info(
+            """
+            The example dataset consist of NIR spectra of 655 pharmaceutical tablets
+            measured on two NIR instruments in the wavelength range of 600-1898 nm with 
+            the digital interval of 2 nm. The noise region of 1794-1898 nm, and 13
+            outlier samples were removed as suggested [see PFCE article]. For each
+            template sample, active pharmaceutical ingredient (API) has been measured
+            as the target of calibration. The remained 642 samples were divided into
+            a calibration set of 400 samples, standard set of 30 samples and prediction
+            set of 212 samples.
+            """
+            , icon = "⭐")
         data = get_Tablet()
         X1 = data["Trans"]["X"][0]
         X2 = data["Trans"]["X"][1]
         wv = data["wv"]
     elif dataSource == "Upload data manually":
+        st.info(
+            """
+            For NS-PFCE, the required inputs are a set of paired standard spectra
+            both measured on primary (Xm) and second instruments (Xs). Of note, the
+            Xm and Xs shold have  the same number of rows and columns, i.e., 
+            the number of samples and variables.
+            """
+            )
         cols = st.columns(2)
         with cols[0]:
             uploaded_file1 = st.file_uploader("Upload the standard spectra of Primary instrument","csv")
@@ -52,7 +72,16 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             plotSPC(X2, wv = wv, title="Second")
 
     ## obtain primary model
+    st.info(
+        """
+        For the PFCE, the model estabiliesh for primary instruments are used as 
+        initional values to estabilshed the model for second instruments. Therefore,
+        you need to build a model via PLS or upload an already built model. There is
+        an existing primary model for teblet dataset.
+        """
+        )
     if dataSource == "Tablet":
+
         nComp = 3
         wv = data["wv"]
         plsModel = pls(nComp=nComp).fit(data["Cal"]["X"][0], data["Cal"]["y"])
@@ -90,7 +119,7 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             st.info("""
                     The uploaded model coefficient file needs to be in csv format, 
                     with n+1 rows and 1 column, where the first number is the intercept
-                    term and the following n numbers are the coefficient terms..
+                    term and the following n numbers are the coefficient terms.
                     """,
                     icon="ℹ️")
             if uploaded_file_model is not None:
@@ -102,6 +131,15 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             plotSPC(model[1:], wv =wv, title = "Model coefficients")
     
     ## predict the prediction set of both instrument with primary model before calibation enhancement
+    st.info(
+        """
+        In general, the primary model predicts relatively well for the primary instrument,
+        while significantly lower for the second machine. For validting the calibration enhancement
+        effect, you need upload the spectra in prediction set of primary and second instruments, 
+        as well as the corresponding reference values. These data has been integraed into the plateform
+        for example dataset.
+        """
+        )
     if "model" in list(vars().keys()):
         if dataSource == "Tablet":
             Xtest1 = data["Test"]["X"][0]
@@ -132,7 +170,7 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
                      ytest = np.array(ytest)
                      plotRef(ytest)
     
-    st.markdown("Predictions from applying the primary model ***before*** calibration enhancement to the prediction set")    
+    st.markdown("Predictions from applying the primary model ***directly*** to the prediction set")    
     if "Xtest1" in list(vars().keys()) and \
         "Xtest2" in list(vars().keys()) and \
         "ytest" in list(vars().keys()) and \
@@ -176,7 +214,7 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
 st.markdown("# Calibration Transfer/Enhancement")
 
 
-st.markdown(
+st.info(
     """
     Parameter free calibration enhancement (PFCE)  is a formal unified NIR 
     spectral model enhancement framework proposed by our team that can cope
