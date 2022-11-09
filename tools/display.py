@@ -7,9 +7,10 @@ from collections import Counter
 from .dataManipulation import download_img
 
 # Common plots
-def plotSPC(X,wv=None):
+def plotSPC(X,wv=None, title = "NIR spectra"):
     if wv is None:
         wv = np.arange(X.shape[1])
+    wv = np.squeeze(wv)
     fig, ax = plt.subplots()
     if wv.shape[0] == X.shape[0]:
         ax.plot(wv, np.array(X))
@@ -20,7 +21,7 @@ def plotSPC(X,wv=None):
     
     ax.set_xlabel('Wavelength (nm)')
     ax.set_ylabel('Intensity (A.U.)')
-    ax.set_title('NIR spectra', loc='center')
+    ax.set_title(title, loc='center')
     st.pyplot(fig)
     fig.tight_layout()
 
@@ -100,7 +101,7 @@ def plotPredictionCV(y,yhat,yhat_cv):
     st.pyplot(fig)
     download_img(fig, fileName = "PredictionCV")
     
-def plotPrediction(y,yhat):
+def plotPrediction(y,yhat, title = "Prediction results"):
     report = regresssionReport(y,yhat)
     fig, ax = plt.subplots()
     ax.plot([np.min(y)*0.95,np.max(y)*1.05],[np.min(y)*0.95,np.max(y)*1.05],
@@ -112,7 +113,7 @@ def plotPrediction(y,yhat):
     ax.set_xlabel("Reference values")
     ax.set_ylabel("Prediction")
     ax.legend(loc='upper left', bbox_to_anchor=(0.0, 1.0))
-    ax.set_title("Prediction results")
+    ax.set_title(title)
     st.pyplot(fig)
     download_img(fig, fileName = "Prediction")
 

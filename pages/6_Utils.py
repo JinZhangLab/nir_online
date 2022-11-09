@@ -6,7 +6,7 @@ import pandas as pd
 from pynir.utils import simulateNIR
 
 from tools.display import plotSPC, plotRef
-
+from tools.dataManipulation import download_csv
 
 with st.sidebar:
     dataload_type = st.radio(
@@ -33,30 +33,15 @@ if dataload_type == "Simulate NIR data":
                           noise = noiseLevel*(10**-5), 
                           refType=refTypeIdx,seeds=seeds)
     plotSPC(X=X,wv=wv)
-    plotRef(y)
+    download_csv(X, label = "Download the spectral file", 
+                 fileName = "Spectra", columns = wv)  
     
-    @st.cache
-    def convert_df(df):
-        # IMPORTANT: Cache the conversion to prevent computation on every rerun
-        return pd.DataFrame(df).to_csv(header=False, index=False).encode('utf-8')
+    plotRef(y)
+    download_csv(y, label = "Download the reference value file", 
+                 fileName = "Reference", columns = ["Reference value"])
 
-    Xcsv = convert_df(X)
-
-    st.download_button(
-        label="Download simulated spectra as CSV",
-        data=Xcsv,
-        file_name='X.csv',
-        mime='text/csv',
-    )
-
-    ycsv = convert_df(y)
-
-    st.download_button(
-        label="Download simulated reference values as CSV",
-        data=ycsv,
-        file_name='y.csv',
-        mime='text/csv',
-    )
+if dataload_type == "Others":
+    st.write("Other function  coming soon...")        
 
     
 

@@ -8,6 +8,8 @@ import io
 import streamlit as st
 import pandas as pd
 import time
+import streamlit as st
+import numpy as np
 
 #@st.cache
 def convert_fig(fig,figFormat = "pdf"):
@@ -41,4 +43,5 @@ def download_csv(data, fileName = "data", label = "Download",
         file_name= fileName + '.csv',
         mime='text/csv',
     )
-    
+
+
