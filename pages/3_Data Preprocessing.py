@@ -94,8 +94,6 @@ if "X" in list(locals().keys()):
     with col2:
         st.markdown("### NIR spectra Preprocessed.")
         plotSPC(X=ppModel.transform(X),wv = wv)
-        download_csv(ppModel.transform(X), label = "Download the preprocessed spectral file",
-                     fileName = "Spectra_preprocessed", columns = wv)
 
 if "ppModel" in list(locals().keys()):
     uploaded_file_new = st.file_uploader("Preprecess spectra with the selected parameters","csv")
