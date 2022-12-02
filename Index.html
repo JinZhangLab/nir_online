@@ -1,0 +1,79 @@
+<head>
+    <title>NIR Tools</title>
+    <meta charset="utf-8">
+    <style>
+        .header h1 {
+            font-size: 40px;}
+        .footer {
+            padding: 20px;
+            text-align: center;}
+        a.button {
+            -webkit-appearance: button;
+            -moz-appearance: button;
+            appearance: button;
+            text-decoration: none;
+            border: 1px solid #000000;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 32px;
+            margin: 4px 2px;
+            cursor: pointer;}
+        .largeFrame {
+            border: 2px solid #000000;
+            padding: 15px 32px;
+            text-align: left;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px 2px;}
+     </style>
+</head>
+
+<body>
+    <div class = "header">
+        <h1>NIR tools</h1>
+        <p>This is a user-friendly and lightweight web-based suite for training and predicting near-infrared (NIR) spectra. This suite is based on our python package <a href="https://pypi.org/project/pynir/">pynir</a>,which was developed to handle a variety of problems in NIR calibrations and includes many more rich features. </p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Regression" target="_self" class="button">Regression</a>
+        <p>
+             This module contains regression with partial least quares (PLS), and other functions are coming soon...
+        </p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Classification" target="_self" class="button">Classification</a>
+        <p>
+            This module contains classification with partial least quares discrimination analysis (PLS-DA), and other functions are coming soon...
+        </p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Data_Preprocessing" target="_self"  class="button">Data Preprocessing</a>
+        <p>
+            This module realizes data preprocessing of NIR spectra with  continuous wavelet transform (CWT), standard normal variate (SNV), multiplicative scatter correction (MSC) and Savitzky-Golay (SG) filter based smooth and derivate, and other functions are coming soon...
+        </p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Outlier_Dection" target="_self" class="button">Outlier Dection</a>
+        <p>
+            This module is designed for outlier dection of NIR spectra (Under development)
+        </p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Calibration_Transfer" target="_self" class="button">Calibration transfer</a>
+        <p>
+            This module realizes calibration transfer/enhancement of NIR spectra with parameter free calibration enhanccement(PFCE) framework, and other functions are coming soon...
+        </p>
+        <p>Details of the PFCE see <a href=https://doi.org/10.1016/j.aca.2020.11.006> here </a></p>
+    </div>
+    <div class = "largeFrame">
+        <a href="./Utils" target="_self" class="button">Utils</a>
+        <p>
+            This is a collection of functions of being useful for training a more accurate model. (In developing)
+        </p>
+    </div>
+    <div class="footer">
+        <a href="https://www.flagcounter.me/details/cZ5"><img src="https://www.flagcounter.me/cZ5/" alt="Flag Counter"></a>
+        <p><a href="mailto:admin@chemoinfolab.com">Contact us</a></p>
+    </div>
+</body>
