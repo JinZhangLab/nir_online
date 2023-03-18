@@ -6,6 +6,8 @@ from collections import Counter
 
 from .dataManipulation import download_img
 
+plt.rcParams['pdf.fonttype'] = 42
+
 # Common plots
 def plotSPC(X,wv=None, title = "NIR spectra"):
     if wv is None:
