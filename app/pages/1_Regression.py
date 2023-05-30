@@ -80,14 +80,14 @@ def step2():
     y = st.session_state["y"]
 
     with st.expander("Set parameters manually for cross validation"):
-        ncomp = st.slider("The max number of pls components in cross validation.",1,20,10)
+        n_components = st.slider("The max number of pls components in cross validation.",1,20,10)
         nfold = st.slider("The number of fold in cross validation.",2,20,10)
 
-    plsModel = pls(nComp = ncomp)
+    plsModel = pls(n_components = n_components)
     plsModel.fit(X,y)
     st.session_state["plsModel"] = plsModel
 
-    yhat = plsModel.predict(X, nComp = np.arange(ncomp)+1)
+    yhat = plsModel.predict(X, n_components = np.arange(n_components)+1)
     yhat_cv = plsModel.crossValidation_predict(nfold)
     rmsec = []
     r2 = []
@@ -108,7 +108,7 @@ def step2():
     with col2:
         plotR2CV(r2,r2cv)
     st.markdown("### Set the optimal number of component.")
-    optLV = st.slider("optLV",1,ncomp ,int(np.argmin(rmsecv)+1))
+    optLV = st.slider("optLV",1,n_components ,int(np.argmin(rmsecv)+1))
     st.session_state["plsModel"].optLV = optLV
 
     col1, col2 = st.columns([1,1])
@@ -136,7 +136,7 @@ def step3():
             st.markdown("### NIR spectra for prediction")
             plotSPC(X=X,wv = wv)
 
-        yhat = plsModel.predict(X, nComp = plsModel.optLV)
+        yhat = plsModel.predict(X, n_components = plsModel.optLV)
         with col2:
             st.markdown("### Prediction results")
             st.dataframe(pd.DataFrame(data=yhat,columns=["Prediction"]))

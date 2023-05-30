@@ -18,18 +18,18 @@ with st.sidebar:
 
 if functionSel == "Simulate NIR data":
     with st.expander("Set simulation parameters"):
-        refType = st.radio('Reference value type', ("Continuous","categorical"))
-        nComponents = st.slider('Number of samples', 1, 20, 10)
+        refType = st.radio('Reference value type', ("Continuous","Categorical"))
+        n_components = st.slider('Number of samples', 1, 20, 10)
         nSamples = st.slider('Number of samples', 10, 200, 100)
         noiseLevel = st.slider('Noise level (×10^-5)', 1, 100, 1)
         seeds = st.slider('Random seeds', 0, 10000, 0)
 
     if refType == "Continuous":
         refTypeIdx=1
-    elif refType == "categorical":
+    elif refType == "Categorical":
         refTypeIdx=2
 
-    X,y, wv = simulateNIR(nSample=nSamples, nComp=nComponents,
+    X,y, wv = simulateNIR(nSample=nSamples, n_components=n_components,
                           noise = noiseLevel*(10**-5),
                           refType=refTypeIdx,seeds=seeds)
     cols = st.columns(2)

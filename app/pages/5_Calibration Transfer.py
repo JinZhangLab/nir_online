@@ -33,7 +33,7 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
     dataSource = st.radio("Upload data required by NS-PFCE or use our example data.",
                           ["Tablet", "Upload data manually"],
                           horizontal=True,
-                          on_change=st.experimental_memo.clear())
+                          on_change=st.cache_data.clear())
 
     if dataSource == "Tablet":
         st.info(
@@ -86,9 +86,9 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
         """
         )
     if dataSource == "Tablet":
-        nComp = 3
+        n_components = 3
         wv = data["wv"]
-        plsModel = pls(nComp=nComp).fit(data["Cal"]["X"][0], data["Cal"]["y"])
+        plsModel = pls(n_components=n_components).fit(data["Cal"]["X"][0], data["Cal"]["y"])
         model = plsModel.model['B'][:,-1]
 
     elif dataSource == "Upload data manually":
@@ -114,8 +114,8 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
                      plotRef(ycal)
 
             if "Xcal" in list(locals().keys()) and "ycal" in list(locals().keys()):
-                nComp = st.slider("Number of PLS components",1, min([20, int(np.linalg.matrix_rank(Xcal))]),1)
-                plsModel = pls(nComp=nComp).fit(Xcal, ycal)
+                n_components = st.slider("Number of PLS components",1, min([20, int(np.linalg.matrix_rank(Xcal))]),1)
+                plsModel = pls(n_components=n_components).fit(Xcal, ycal)
                 model = plsModel.model['B'][:,-1]
 
         elif modelSource == "Upload own model":

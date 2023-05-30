@@ -9,7 +9,7 @@ import os
 from scipy.io import loadmat
 basePath = os.path.split(os.path.realpath(__file__))[0]
 
-@st.cache
+@st.cache_data
 def get_Tablet():
     """
     Returns
@@ -26,7 +26,7 @@ def get_Tablet():
     dataOut["wv"] = data["wv"]
     return dataOut
 
-@st.cache
+@st.cache_data
 def get_PlantLeaf():
     """
     Returns
@@ -43,7 +43,7 @@ def get_PlantLeaf():
     dataOut["wv"] = data["wv"]
     return dataOut
 
-@st.cache
+@st.cache_data
 def get_Corn():
     """
     Returns

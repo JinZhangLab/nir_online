@@ -84,10 +84,10 @@ def step2():
     y = st.session_state["y"]
     
     with st.expander("Set parameters manually for cross validation"):
-        ncomp = st.slider("The max number of component in pls calibration.",1,20,10)
+        n_components = st.slider("The max number of component in pls calibration.",1,20,10)
         nfold = st.slider("The number of fold in cross validation.",2,20,10)
     
-    plsdaModel = plsda(nComp = ncomp)
+    plsdaModel = plsda(n_components = n_components)
     plsdaModel.fit(X,y)
     st.session_state["plsdaModel"] = plsdaModel
     
@@ -96,11 +96,11 @@ def step2():
     accuracy_cv = []
     f1_cv = []
     for i in range(yhat_cv.shape[1]):
-        if len(plsdaModel.classes) == 2:
+        if len(plsdaModel.lda.classes_) == 2:
             report_cv = binaryClassificationReport(y, yhat_cv[:,i])
             accuracy_cv.append(report_cv["accuracy"])
             f1_cv.append(report_cv["f1"])
-        elif len(plsdaModel.classes) > 2:
+        elif len(plsdaModel.lda.classes_) > 2:
             report_cv = multiClassificationReport(y, yhat_cv[:,i])
             accuracy_cv.append(np.mean([rep["accuracy"] for rep in report_cv.values()]))
             f1_cv.append(np.mean([rep["f1"] for rep in report_cv.values()]))
@@ -112,10 +112,10 @@ def step2():
     with col2:
         plotAccuracyCV(f1_cv,labels = "f1")
     st.markdown("### Set the optimal number of component.")
-    optLV = st.slider("optLV",1,ncomp ,int(np.argmax(accuracy_cv)+1))
+    optLV = st.slider("optLV",1,n_components ,int(np.argmax(accuracy_cv)+1))
     
 
-    plsdaModel = plsda(nComp = optLV)
+    plsdaModel = plsda(n_components = optLV)
     plsdaModel.fit(X,y)
     st.session_state["plsdaModel"] = plsdaModel
      

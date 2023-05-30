@@ -25,10 +25,10 @@ def download_img(fig, fileName = "Figure", label = "Download image"):
         data=img,
         file_name= fileName + "." + figFormat,
         mime="image/"+figFormat,
-        key=time.time()
+        key=str(time.time())
     )
 
-@st.cache
+@st.cache_data
 def convert_csv(data,columnName = None):
     if not isinstance(data, pd.core.frame.DataFrame):
         data = pd.DataFrame(data = data, columns=columnName)

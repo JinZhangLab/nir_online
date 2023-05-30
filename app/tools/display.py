@@ -19,7 +19,7 @@ def plotSPC(X,wv=None, title = "NIR spectra"):
     elif wv.shape[0] == X.shape[1]:
         ax.plot(wv, np.transpose(X))
     else:
-        raise("The data dimension does not match!")
+        raise Exception("The data dimension does not match!")
     
     ax.set_xlabel('Wavelength (nm)')
     ax.set_ylabel('Intensity (A.U.)')
@@ -45,7 +45,7 @@ def plotRef(y):
 def plotRef_clf(y):
     mycount = Counter(y)
     fig, ax = plt.subplots()
-    ax.bar(mycount.keys(),mycount.values())
+    ax.bar(list(mycount.keys()), list(mycount.values()))
     ax.set_xlabel('Ranges')
     ax.set_ylabel('Count')
     ax.set_title('Reference values', loc='center')

@@ -19,10 +19,10 @@ cd ./nir_online
 
 docker build -t nir_online .
 
-docker rum -p 8501:8501 -d nir_online
+docker run -p 8501:8501 nir_online
 ```
 
-Then, you can use the nir online tool by open it in your browser at <http://localhost:8501>
+Then, you can use the nir online tool by opening it in your browser at <http://localhost:8501>
 
 ### Local machine
 
@@ -30,8 +30,12 @@ Then, you can use the nir online tool by open it in your browser at <http://loca
 git clone https://github.com/JinZhangLab/nir_online.git
 cd ./nir_online/app
 
+python3 -m pip install requirements.txt
+
 streamlit run Index.py
 ```
+
+Then, you can use the nir online tool by opening it in your browser at <http://localhost:8501>
 
 ### Streamlit clould
 
