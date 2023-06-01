@@ -50,7 +50,9 @@ def dataProcessing_sg_derivate(X):
 
 
 
-## Main Page
+# page content
+st.set_page_config(page_title="NIR Online-Data preprocessing", page_icon=":rocket:", layout="wide")
+
 st.markdown("# Spectral preprocessing")
 
 dataSource = st.radio("Upload your data or use our example.",

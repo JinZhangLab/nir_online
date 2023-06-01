@@ -166,7 +166,11 @@ def step3():
                 cm = plsdaModel.get_confusion_matrix(X,y)
                 plot_confusion_matrix(cm, np.unique(y),normalize=False,
                                       title="Prediction on uploaded spectra")
-    
+
+# page content
+
+st.set_page_config(page_title="NIR Online-Classification", page_icon="📈", layout="wide")
+
 step1()
 
 if 'X' in st.session_state and \

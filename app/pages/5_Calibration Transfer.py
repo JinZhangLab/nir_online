@@ -223,7 +223,9 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             plotPrediction(ytest, yhat2_NS_PFCE,
                            title="Prediction of " + allTitle[1] + " instrument After calibration enhanced by NS-PFCE")
 
-# Main Page
+# Page content
+st.set_page_config(page_title="NIR Online-Calibration Enhancement", page_icon=":rocket:", layout="wide")
+
 st.markdown("# Calibration Transfer/Enhancement")
 
 
