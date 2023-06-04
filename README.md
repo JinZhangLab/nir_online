@@ -1,7 +1,7 @@
 
 # NIR Online Tools
 
-This is a web-based tool for performing calirabtion (i.e., regression, classiciatoin), data preprocessing, outlier dection, calibration transfer, e.g., on near-infrared (NIR) spectroscopy data.
+This is a web-based tool for performing calirabtion (i.e., regression, classiciatoin), data preprocessing, outlier dection, calibration transfer, etc., on near-infrared (NIR) spectroscopy data.
 
 ## Usage
 
@@ -39,7 +39,7 @@ Then, you can use the nir online tool by opening it in your browser at <http://l
 
 ### Streamlit clould
 
-[Instructions for deploying on Streamlit Cloud go here.](https://streamlit.io/cloud)
+Fork the repository, and then fullow the [Instructions](https://streamlit.io/cloud) for deploying this tool on Streamlit Cloud.
 
 ## Contributing
 

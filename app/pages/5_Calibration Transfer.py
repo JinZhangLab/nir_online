@@ -7,16 +7,16 @@ from pynir.CalibrationTransfer import NS_PFCE, SS_PFCE, FS_PFCE, MT_PFCE
 
 from tools.dataManipulationCT import get_Tablet
 from tools.dataManipulation import download_csv
-from tools.display import plotSPC, plotRef, plotPrediction
+from tools.display import plotSPC, plotRef_reg, plotPrediction_reg, plotRegressionCoefficients
 
 allTitle = ["Primary","Second", "Third", "Fourth", "Fifth", "Sixth",
             "Seventh", "Eighth", "Ninth", "Tenth"]
 
 def predict(X, model):
-    ones = np.ones((X.shape[0],1))
-    X_aug = np.hstack((ones, X))
-    yhat = np.dot(X_aug, np.reshape(model,(-1,1)))
-    return yhat
+    ones = np.ones((X.to_numpy().shape[0],1))
+    X_aug = np.hstack((ones, X.to_numpy()))
+    yhat = np.dot(X_aug, np.reshape(model.to_numpy(),(-1,1)))
+    return pd.DataFrame(yhat, index=X.index, columns=["Prediction"])
 
 def NS_PFCE_fun(constType="Corr", threshould=0.98):
     ## Obtain standard spectra
@@ -51,7 +51,10 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
         data = get_Tablet()
         X1 = data["Trans"]["X"][0]
         X2 = data["Trans"]["X"][1]
-        wv = data["wv"]
+        wv = data["wv"].flatten()
+        X1 = pd.DataFrame(X1, columns=wv)
+        X2 = pd.DataFrame(X2, columns=wv)
+
     elif dataSource == "Upload data manually":
         cols = st.columns(2)
         with cols[0]:
@@ -59,21 +62,19 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             if uploaded_file1 is not None:
                 X1 = pd.read_csv(uploaded_file1,index_col=0)
                 wv = np.array(X1.columns).astype("float")
-                X1 = np.array(X1)
         with cols[1]:
             uploaded_file2 = st.file_uploader("Upload the standard spectra of Second instrument","csv")
             if uploaded_file2 is not None:
                 X2 = pd.read_csv(uploaded_file2,index_col=0)
                 wv = np.array(X2.columns).astype("float")
-                X2 = np.array(X2)
 
     cols = st.columns(2)
     if "X1" in list(vars().keys()):
         with cols[0]:
-            plotSPC(X1, wv = wv, title="NIR spectra of primary instrument")
+            plotSPC(X1, title="NIR spectra of primary instrument")
     if "X2" in list(vars().keys()):
         with cols[1]:
-            plotSPC(X2, wv = wv, title="NIR spectra of second instrument")
+            plotSPC(X2, title="NIR spectra of second instrument")
 
     ## obtain primary model
     st.header("Primary Model")
@@ -87,13 +88,12 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
         )
     if dataSource == "Tablet":
         n_components = 3
-        wv = data["wv"]
         plsModel = pls(n_components=n_components).fit(data["Cal"]["X"][0], data["Cal"]["y"])
-        model = plsModel.model['B'][:,-1]
+        model = pd.DataFrame(data = plsModel.model['B'][:,-1], index=[-1] + list(wv), columns=["Primary model"])
 
     elif dataSource == "Upload data manually":
         modelSource = st.radio("build or use your own primary model",
-                              ["built primary model", "Upload own model"],
+                              ["built primary model", "Upload an estabilished model"],
                               horizontal=True)
 
         if modelSource == "built primary model":
@@ -103,37 +103,33 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
                 if uploaded_file_Xcal is not None:
                     Xcal = pd.read_csv(uploaded_file_Xcal,index_col=0)
                     wv = np.array(Xcal.columns).astype("float")
-                    Xcal = np.array(Xcal)
-                    plotSPC(Xcal, wv = wv, title="Second")
+                    plotSPC(Xcal, title="NIR spectra - Calibration set - Second instrument")
 
             with cols[1]:
                  uploaded_file_ycal = st.file_uploader("Upload reference value for calibration","csv")
                  if uploaded_file_ycal is not None:
                      ycal = pd.read_csv(uploaded_file_ycal,index_col=0)
-                     ycal = np.array(ycal)
-                     plotRef(ycal)
+                     plotRef_reg(ycal, title = "Reference value - Calibration set")
 
             if "Xcal" in list(locals().keys()) and "ycal" in list(locals().keys()):
                 n_components = st.slider("Number of PLS components",1, min([20, int(np.linalg.matrix_rank(Xcal))]),1)
                 plsModel = pls(n_components=n_components).fit(Xcal, ycal)
-                model = plsModel.model['B'][:,-1]
+                model = pd.DataFrame(data = plsModel.model['B'][:,-1], index=[-1] + list(wv), columns=["Primary model"])
 
-        elif modelSource == "Upload own model":
+        elif modelSource == "Upload an estabilished model":
             uploaded_file_model = st.file_uploader("Upload your model coefficients","csv")
             st.info("""
-                    The uploaded model coefficient file needs to be in csv format,
-                    with n+1 rows and 1 column, where the first number is the intercept
-                    term and the following n numbers are the coefficient terms.
+                    The uploaded model coefficient file needs to be in csv format.
+                    You can download a model file from the Regression page in this site to know format requirement.
                     """,
                     icon="ℹ️")
             if uploaded_file_model is not None:
-                model = np.loadtxt(uploaded_file_model, delimiter=',')
+                model = pd.read_csv(uploaded_file_model, index_col=0)
 
     if "model" in list(vars().keys()):
-        download_csv(model,columns = ["Model coefficients"])
         _,col1,_ = st.columns([1,2,1])
         with col1:
-            plotSPC(model[1:], wv =wv, title = "Model coefficients")
+            plotRegressionCoefficients(model, title = "Model coefficients")
 
 
     ## Calibration enhancement
@@ -145,17 +141,22 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
                     This will take from a few minutes to several minutes depending
                     on the number of variables in NIR spectra.
                     """):
-                NS_PFCE_model = NS_PFCE(thres=threshould, constrType=constType).fit(X1,X2,model)
+                NS_PFCE_model = NS_PFCE(thres=threshould, constrType=constType).fit(X1.to_numpy(), X2.to_numpy(), model.to_numpy().flatten())
 
             _,col1,_ = st.columns([1,2,1])
             with col1:
-                plotSPC(np.ravel(NS_PFCE_model.b2.x)[1:], wv =wv, title = "Model coefficients of second instrument enhanced by NS-PFCE")
+                slaveModel = pd.DataFrame(data = NS_PFCE_model.b2.x, index=[-1] + list(wv), columns=["Slave model"])
+                plotRegressionCoefficients(slaveModel, title = "Slave model enhanced by NS-PFCE")
 
     if "model" in list(vars().keys()) and "NS_PFCE_model" in list(vars().keys()):
         if dataSource == "Tablet":
             Xtest1 = data["Test"]["X"][0]
             Xtest2 = data["Test"]["X"][1]
             ytest = data["Test"]["y"]
+            Xtest1 = pd.DataFrame(Xtest1, columns=wv)
+            Xtest2 = pd.DataFrame(Xtest2, columns=wv)
+            ytest = pd.DataFrame(ytest, columns=["Reference"])
+
         elif dataSource == "Upload data manually":
 
             cols = st.columns(3)
@@ -164,23 +165,20 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
                 if uploaded_file_Xtest1 is not None:
                     Xtest1 = pd.read_csv(uploaded_file_Xtest1,index_col=0)
                     wv = np.array(Xtest1.columns).astype("float")
-                    Xtest1 = np.array(Xtest1)
-                    plotSPC(Xtest1, wv = wv, title="Prediction set of Primary instruments")
+                    plotSPC(Xtest1, title="Prediction set of Primary instruments")
 
             with cols[1]:
                 uploaded_file_Xtest2 = st.file_uploader("Upload spectra of second instrument for prediction","csv")
                 if uploaded_file_Xtest2 is not None:
                     Xtest2 = pd.read_csv(uploaded_file_Xtest2,index_col=0)
                     wv = np.array(Xtest2.columns).astype("float")
-                    Xtest2 = np.array(Xtest2)
-                    plotSPC(Xtest2, wv = wv, title="Prediction set of Second instruments")
+                    plotSPC(Xtest2, title="Prediction set of Second instruments")
 
             with cols[2]:
                  uploaded_file_ytest = st.file_uploader("Upload reference value for validating prediction","csv")
                  if uploaded_file_ytest is not None:
                      ytest = pd.read_csv(uploaded_file_ytest,index_col=0)
-                     ytest = np.array(ytest)
-                     plotRef(ytest)
+                     plotRef_reg(ytest)
 
     if "Xtest1" in list(vars().keys()) and \
         "Xtest2" in list(vars().keys()) and \
@@ -201,18 +199,23 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
         st.markdown("Predictions from applying the primary model ***directly*** to the prediction set")
         cols = st.columns(2)
         with cols[0]:
-            plotPrediction(ytest, predict(Xtest1,model),
-                           title="Outcomes of prediction set of " + allTitle[0] + " instrument with primary model Before enhanced")
+            yhatMaster = pd.DataFrame(data = [ytest.to_numpy().flatten(), predict(Xtest1, model).to_numpy().flatten()],
+                                         index=["Reference", "Master"], columns=ytest.index)
+            plotPrediction_reg(yhatMaster,
+                           xlabel="Reference", ylabel="Prediction",
+                           title="Prediction of master spectra before calibration enhancement")
         with cols[1]:
-            plotPrediction(ytest, predict(Xtest2,model),
-                           title="Outcomes of prediction set of " + allTitle[1] + " instrument  with primary model Before enhanced")
-
+            yhatSlave = pd.DataFrame(data = [ytest.to_numpy().flatten(), predict(Xtest2, model).to_numpy().flatten()],
+                                      index=["Reference", "Slave"], columns=ytest.index)           
+            plotPrediction_reg(yhatSlave,
+                           xlabel="Reference", ylabel="Prediction",
+                           title="Prediction of slave spectra before calibration enhancement")
 
     ## predict the prediction set of both instrument with primary model After calibation enhancement
     if "Xtest2" in list(vars().keys()) and \
         "ytest" in list(vars().keys()) and \
         "NS_PFCE_model" in list(vars().keys()):
-        yhat2_NS_PFCE = NS_PFCE_model.transform(Xtest2)
+        yhat2_NS_PFCE = NS_PFCE_model.transform(Xtest2.to_numpy())
         st.header("Prediction before calibration enhancement")
         st.markdown(
             """Predictions of the prediction set of secondard instrument by applying the primary model ***After*** calibration
@@ -220,8 +223,10 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
             """)
         _,col1,_ = st.columns([1,2,1])
         with col1:
-            plotPrediction(ytest, yhat2_NS_PFCE,
-                           title="Prediction of " + allTitle[1] + " instrument After calibration enhanced by NS-PFCE")
+            yhatWithCT = pd.DataFrame(data = [ytest.to_numpy().flatten(), yhat2_NS_PFCE.flatten()],
+                                index=["Reference", "Slave"], columns=ytest.index)
+            plotPrediction_reg(yhatWithCT,
+                           title="Prediction of slave After calibration enhanced by NS-PFCE")
 
 # Page content
 st.set_page_config(page_title="NIR Online-Calibration Enhancement", page_icon=":rocket:", layout="wide")

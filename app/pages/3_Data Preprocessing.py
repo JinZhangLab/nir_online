@@ -14,17 +14,15 @@ from tools.dataManipulation import download_csv
 def dataProcessing_cwt(X):
     st.markdown("Set the parameters")
     scale = st.slider("scale",1,X.shape[1],30)
-    wavelet = st.radio("Wavelet",["cgau1","cgau2","cgau3","cgau4","cgau5","cgau6",
-                                  "cgau7","cgau8","cmor","fbsp", "gaus1","gaus2",
-                                  "gaus3","gaus4","gaus5","gaus6","gaus7","gaus8",
-                                  "mexh","morl","shan"],
+    wavelet = st.radio("Wavelet",["gaus1","gaus2", "mexh","morl","shan"],
                        horizontal=True)
 
     cwtModel = cwt(wavelet = wavelet, scale = scale)
     return cwtModel
 
 def dataProcessing_snv(X):
-    snvModel = snv().fit(X)
+    snvModel = snv()
+    snvModel.fit(X)
     return snvModel
 
 def dataProcessing_msc(X):
@@ -42,7 +40,7 @@ def dataProcessing_sg_smooth(X):
 def dataProcessing_sg_derivate(X):
     st.markdown("Set the parameters")
     window_length = st.slider("window length",1,min((*X.shape,50)),7)
-    polyorder = st.slider("polyorder",0, 3, 1)
+    polyorder = st.slider("polyorder",0, 3, 2)
     deriv = st.slider("derivate order", 0, polyorder, 0)
     sgModel = SG_filtering(window_length = window_length,
                            polyorder=polyorder, deriv = deriv)
@@ -64,13 +62,17 @@ method = st.radio("Select a preprocessing method",
 
 if dataSource == "Example data 1":
     X, y, wv = simulateNIR()
+    sampleNames = [f"Sample_{i}" for i in range(X.shape[0])]
+    X = pd.DataFrame(X, columns=wv, index=sampleNames)
+    y = pd.DataFrame(y, columns=["Reference values"], index=sampleNames)
+
 elif dataSource == "Upload data manually":
     uploaded_file = st.file_uploader("Upload your spectra here","csv")
     if uploaded_file is not None:
         X = pd.read_csv(uploaded_file,index_col=0)
         wv = np.array(X.columns).astype("float")
         sampleNames = X.index
-        X = np.array(X)
+
 
 
 if "X" in list(locals().keys()):
@@ -92,25 +94,32 @@ if "X" in list(locals().keys()):
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("### NIR spectra uploaded.")
-        plotSPC(X=X,wv = wv)
+        plotSPC(X)
     with col2:
         st.markdown("### NIR spectra Preprocessed.")
-        plotSPC(X=ppModel.transform(X),wv = wv)
+        X_preprocessed = ppModel.transform(X.to_numpy())
+        X_preprocessed = pd.DataFrame(X_preprocessed, columns=wv, index=sampleNames)
+        plotSPC(X_preprocessed)
 
-if "ppModel" in list(locals().keys()):
-    uploaded_file_new = st.file_uploader("Preprecess spectra with the selected parameters","csv")
-    if uploaded_file_new is not None:
-        Xnew = pd.read_csv(uploaded_file_new,index_col=0)
-        wv_new = np.array(Xnew.columns).astype("float")
-        sampleNames_new = Xnew.index
-        Xnew = np.array(Xnew)
+    if "ppModel" in list(locals().keys()):
+        st.markdown("## Apply the preprocess model to another spectral set")
+        uploaded_file_new = st.file_uploader("Apply the preprocess model to another spectral set","csv", label_visibility='collapsed')
+        if uploaded_file_new is not None:
+            Xnew = pd.read_csv(uploaded_file_new,index_col=0)
+            wv_new = np.array(Xnew.columns).astype("float")
+            if np.sum(wv_new != wv) > 0:
+                st.error("The wavelength range of the uploaded spectra is not the same as the uploaded spectra.")
+                st.stop()
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### NIR spectra uploaded.")
-            plotSPC(X=Xnew,wv = wv)
-        with col2:
-            st.markdown("### NIR spectra Preprocessed.")
-            plotSPC(X=ppModel.transform(Xnew),wv = wv)
-            download_csv(ppModel.transform(Xnew), label = "Download the preprocessed spectral file",
-                         fileName = "Spectra_preprocessed", columns = wv)
+            sampleNames_new = Xnew.index
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("### NIR spectra uploaded.")
+                plotSPC(Xnew)
+            with col2:
+                st.markdown("### NIR spectra Preprocessed.")
+                Xnew_preprocessed = ppModel.transform(Xnew.to_numpy())
+                Xnew_preprocessed = pd.DataFrame(Xnew_preprocessed, columns=wv, index=sampleNames_new)
+                plotSPC(Xnew_preprocessed)
+

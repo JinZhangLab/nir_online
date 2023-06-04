@@ -4,8 +4,8 @@ import streamlit as st
 from pynir.Calibration import pls, regressionReport
 from pynir.utils import simulateNIR
 from tools.dataManipulation import download_csv
-from tools.display import (plotPrediction, plotPredictionCV, plotR2CV, plotRef_reg,
-                           plotRegressionCoefficients, plotRMSECV, plotSPC)
+from tools.display import (plotPrediction_reg, plotRef_reg,
+                           plotRegressionCoefficients, plotSPC, plotFOMvsHP)
 import time
 
 def step1():
@@ -88,18 +88,25 @@ def step2():
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        plotRMSECV(rmsec, rmsecv)
+        RMSECV = pd.DataFrame(data=[rmsec, rmsecv], index=["RMSE", "RMSECV"], columns=np.arange(n_components) + 1)
+        plotFOMvsHP(RMSECV, xlabel="$n$LV", ylabel="RMSE", title="RMSE $vs$ $n$LV")
     with col2:
-        plotR2CV(r2, r2cv)
+        R2cv = pd.DataFrame(data=[r2, r2cv], index=["R2", "R$^2$$_C$$_V$"], columns=np.arange(n_components) + 1)
+        plotFOMvsHP(R2cv, xlabel="$n$LV", ylabel="R2", title="R$^2$ $vs$ $n$LV")
+    
     st.markdown("### Set the optimal number of component.")
     optLV = st.slider("optLV", 1, n_components, int(np.argmin(rmsecv) + 1))
     st.session_state["plsModel"].optLV = optLV
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        plotRegressionCoefficients(plsModel.model["B"][2:, optLV - 1])
+        modelCoefficients = pd.DataFrame(data=plsModel.model["B"][:, optLV - 1], index=[-1]+ list(X.columns), 
+                                         columns=["Coefficients"])
+        plotRegressionCoefficients(modelCoefficients, title=f"Regression Coefficients with {optLV} LVs")
     with col2:
-        plotPredictionCV(y.to_numpy(), yhat[:, optLV - 1], yhat_cv[:, optLV - 1])
+        ycv = pd.DataFrame(data = [y.to_numpy().flatten(), yhat[:,optLV-1], yhat_cv[:, optLV - 1]],
+                            index=["Reference", "Calibration","Cross Validation"], columns=y.index)
+        plotPrediction_reg(ycv,xlabel="Reference", ylabel="Prediction", title=f"Prediction with {optLV} LVs")
 
 
 def step3():
@@ -126,13 +133,15 @@ def step3():
             download_csv(yhat, index = True, columns=True, index_label="Sample Name",
                           fileName="Prediction", label="Download Prediction")
 
-        st.markdown("### Import your reference values for validatation")
+        st.markdown("### Import your reference values for visualization")
         uploaded_file = st.file_uploader("y for prediction", "csv", label_visibility="hidden")
         if uploaded_file is not None:
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
             with col1:
-                plotPrediction(y.to_numpy(), yhat.to_numpy())
+                Predictions = pd.DataFrame(data = [y.to_numpy().flatten(), yhat.to_numpy().flatten()],
+                    index=["Reference", "Prediction"], columns=y.index)
+                plotPrediction_reg(Predictions,xlabel="Reference", ylabel="Prediction", title="Predictions")
 
 
 # page content
