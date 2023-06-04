@@ -5,7 +5,7 @@ This is a web-based tool for performing calirabtion (i.e., regression, classicia
 
 ## Usage
 
-You can use this tools online at <https://nir.chemoinfolab.com> or depoly by your self.
+You can use this tool online at <https://nir.chemoinfolab.com> or this alternative site <https://nironline.streamlit.app>, or you can deploy it yourself.
 
 ## Deployment
 
