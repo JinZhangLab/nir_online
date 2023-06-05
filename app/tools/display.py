@@ -274,3 +274,66 @@ def plot_confusion_matrix(cm,
         download_img(fig, fileName=title,label="Download image")
         download_csv(cm, index=True, columns=True, index_label="True label\\Prediction",
                       fileName=title, label="Download csv")
+
+
+# Feature Selection
+def plotVariableImportance(Imp, xlabel="Wavelength (nm)", ylabel = "Intensity", title = "Variable importance"):
+    """
+    Imp: pandas dataframe with variable importance.
+         The row correspond the method, the column correspond the variable importance for each variable.
+         The variable importance by each variable are normalized to the range of 0-1 for comparison.
+    """
+    fig, ax = plt.subplots()
+    wv = np.array(Imp.columns, dtype=float)
+    for i in range(Imp.shape[0]):
+        impi = (Imp.iloc[i, :]-Imp.iloc[i, :].min()) / (Imp.iloc[i, :].max()-Imp.iloc[i, :].min())
+        ax.plot(wv, impi, label=Imp.index[i])
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend()
+    col1, col2 = st.tabs(["Figure", "Download"])
+    with col1:
+        st.pyplot(fig)
+    with col2:
+        download_img(fig, fileName="Variable Importance", label="Download image")
+        download_csv(Imp,  index = True, columns=True, index_label="Method\\Wavelength (nm)",
+                     fileName="Variable Importance", label="Download file")
+
+
+def plotVariableSelection(X, FS, xlabel="Wavelength (nm)", ylabel = "Intensity", title = "Variable importance"):
+    """
+    X: pandas dataframe with spectra.
+    FS: pandas dataframe with variable selection result.
+         The row correspond the method, the column correspond that the variable is selected or not for each variable.
+    """
+    fig, (ax1, ax2) = plt.subplots(2,1, sharex=True, )
+    wv = np.array(X.columns, dtype=float)
+    ax1.plot(wv, X.to_numpy().T)
+    ax1.set_ylabel(ylabel)
+    ax1.set_title("Variable selection")
+
+    for i in range(FS.shape[0]):
+        fsi = FS.iloc[i, :].to_numpy(dtype=bool)
+        ax2.eventplot(wv[fsi], lineoffsets=i+1, linelengths=0.5, linewidths=1.0)
+    ax2.set_xlabel(xlabel)
+    ax2.set_ylabel("Method")
+    ax2.set_yticks(np.arange(FS.shape[0])+1)
+    ax2.set_yticklabels(FS.index)
+    # 调整子图之间的间距为 0
+    plt.subplots_adjust(hspace=0)
+
+    # 取消上子图的 x tick 的可见性
+    plt.setp(ax1.get_xticklabels(), visible=False)
+
+    ax1.spines['bottom'].set_linestyle(' ') 
+    ax2.spines['top'].set_linestyle(' ')
+    ax2.set_ylim(ax2.get_ylim()[::-1])
+
+    col1, col2 = st.tabs(["Figure", "Download"])
+    with col1:
+        st.pyplot(fig)
+    with col2:
+        download_img(fig, fileName="Variable Selection", label="Download image")
+        download_csv(FS,  index = True, columns=True, index_label="Method\\Wavelength (nm)",
+                     fileName="Variables Selected", label="Download file")

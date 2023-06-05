@@ -11,6 +11,8 @@ import time
 import streamlit as st
 import numpy as np
 
+import base64
+
 # @st.cache_data
 def convert_fig(fig,figFormat = "pdf"):
     img = io.BytesIO()
@@ -41,3 +43,17 @@ def download_csv(data, index = True, columns = True, index_label = None, fileNam
         mime='text/csv',
         key=str(time.time())
     )
+
+
+
+
+
+def download_csv_md(df,index = True, columns = True, index_label = None, fileName = "data", label = "Download"):
+  # Convert the dataframe to csv
+  csv = df.to_csv(index=True, header=True, index_label=None)
+  # Encode the csv to base64
+  b64 = base64.b64encode(csv.encode()).decode()
+  # Create a markdown link to download the csv
+  link = f'<a href="data:file/csv;base64,{b64}" download="{fileName + ".csv"}"> {label} file</a>'
+  # Display the link in streamlit
+  st.markdown(link, unsafe_allow_html=True)
