@@ -87,8 +87,18 @@ def pltPCAscores_2d(scores, Vars = None, title="PCA scores"):
         download_csv(scores, index = True, columns=True, index_label="Sample name",
                      fileName="PCAscores", label="Download PCA scores file")
 
-# display reference values for regression
 def plotRef_reg(y):
+    """
+    Plots a histogram of the reference values in a pandas DataFrame for regression.
+
+    Args:
+        y (pandas.DataFrame): A DataFrame containing the reference values. Each column represents a sample and each row represents a variable.
+
+    Returns:
+        None.
+
+    Displays a histogram of the reference values in a Streamlit tab along with buttons to download the plot as an image and the reference values as a CSV file.
+    """
     fig, ax = plt.subplots()
     ax.hist(y, rwidth=0.9)
     ax.set_xlabel('Ranges')
@@ -104,8 +114,19 @@ def plotRef_reg(y):
                      fileName="Reference", label="Download reference value file")
 
 
-# display reference values for classification
 def plotRef_clf(y):
+    """
+    Plots a bar chart of the reference values in a pandas DataFrame for classification.
+
+    Args:
+        y (pandas.DataFrame): A DataFrame containing the reference values. The first column represents the class labels and each row represents a sample.
+
+    Returns:
+        None.
+
+    Displays a bar chart of the reference values in a Streamlit tab along with buttons to download the plot as an image and the reference values as a CSV file.
+    """
+
     mycount = Counter(y.iloc[:, 0])
     fig, ax = plt.subplots()
     ax.bar(list(mycount.keys()), list(mycount.values()))
@@ -120,8 +141,7 @@ def plotRef_clf(y):
         download_img(fig, fileName="ReferenceValues", label="Download image")
         download_csv(y,  index = True, columns=True, index_label="Sample name", 
                      fileName="Reference", label="Download reference value file")
-# plot for regression by pls
-# plot rmsecv variation against lv
+
 
 
 def plotFOMvsHP(FOM, xlabel="Hypers", ylabel="FOM", title="NIR online", cmap=None, markers=None):
