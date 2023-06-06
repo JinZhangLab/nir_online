@@ -23,8 +23,8 @@ def fun_simulateNIR():
         noiseLevel = st.slider('Noise level (×10^-5)', 0, 100, 1)
         seeds = st.slider('Random seeds', 0, 10000, 0)
         refType = st.slider('Reference value type', 1, min([5, round(nSamples/2)]), 1,
-                            help="""1 for reference values resampled from contious regrion, 
-                           integer larger thant 1 for reference values belong to the corresponding number of classes.""")
+                            help="""1 represent for reference values resampled from contious regrion, 
+                           integer larger than 1 for reference values belong to the corresponding number of classes.""")
 
     X, y, wv = simulateNIR(nSample=nSamples,
                            n_components=n_components,

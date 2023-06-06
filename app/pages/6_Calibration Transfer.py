@@ -134,7 +134,7 @@ def NS_PFCE_fun(constType="Corr", threshould=0.98):
 
     ## Calibration enhancement
     if "X1" in list(vars().keys()) and "X2" in list(vars().keys()) and "model" in list(vars().keys()):
-        startPFCE = st.button("▶ Start calibration enhancement",help="Calibration enhancement with PFCE will take a few nimutes.")
+        startPFCE = st.button("▶ Start calibration enhancement", help="Calibration enhancement with PFCE will take a few nimutes.")
         if startPFCE:
             with st.spinner(
                     """
