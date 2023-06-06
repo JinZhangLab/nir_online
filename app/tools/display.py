@@ -15,6 +15,16 @@ plt.rcParams['pdf.fonttype'] = 42
 
 
 def plotSPC(X, title="NIR spectra"):
+    """
+    Plots the NIR spectra for a given set of samples.
+
+    Args:
+    X (pandas.DataFrame): A DataFrame containing the NIR spectra for each sample. The index should contain the sample names and the columns should contain the wavelength values.
+    title (str): The title of the plot. Default is "NIR spectra".
+
+    Returns:
+    None
+    """
     sampleName = X.index.to_numpy(dtype=str)
     wv = X.columns.to_numpy(dtype=float)
 
