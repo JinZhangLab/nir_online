@@ -1,23 +1,17 @@
 import streamlit as st
-
-from pynir.Preprocessing import cwt, snv, msc, SG_filtering
-from pynir.utils import simulateNIR
-
 import numpy as np
 import pandas as pd
-
+from pynir.Preprocessing import cwt, snv, msc, SG_filtering
+from pynir.utils import simulateNIR
 from tools.display import plotSPC
 from tools.dataManipulation import download_csv
 
-
-## Dependent function
+# Dependent function
 def dataProcessing_cwt(X):
     st.markdown("Set the parameters")
-    scale = st.slider("scale",1,X.shape[1],30)
-    wavelet = st.radio("Wavelet",["gaus1","gaus2", "mexh","morl","shan"],
-                       horizontal=True)
-
-    cwtModel = cwt(wavelet = wavelet, scale = scale)
+    scale = st.slider("scale", 1, X.shape[1], 30)
+    wavelet = st.radio("Wavelet", ["gaus1", "gaus2", "mexh", "morl", "shan"], horizontal=True)
+    cwtModel = cwt(wavelet=wavelet, scale=scale)
     return cwtModel
 
 def dataProcessing_snv(X):
@@ -31,34 +25,25 @@ def dataProcessing_msc(X):
 
 def dataProcessing_sg_smooth(X):
     st.markdown("Set the parameters")
-    window_length = st.slider("window length",1,min((*X.shape,50)),7)
-    polyorder = st.slider("polyorder",0,3,1)
-    sgModel = SG_filtering(window_length = window_length,
-                           polyorder=polyorder,deriv = 0)
+    window_length = st.slider("window length", 1, min((*X.shape, 50)), 7)
+    polyorder = st.slider("polyorder", 0, 3, 1)
+    sgModel = SG_filtering(window_length=window_length, polyorder=polyorder, deriv=0)
     return sgModel
 
 def dataProcessing_sg_derivate(X):
     st.markdown("Set the parameters")
-    window_length = st.slider("window length",1,min((*X.shape,50)),7)
-    polyorder = st.slider("polyorder",0, 3, 2)
+    window_length = st.slider("window length", 1, min((*X.shape, 50)), 7)
+    polyorder = st.slider("polyorder", 0, 3, 2)
     deriv = st.slider("derivate order", 0, polyorder, 0)
-    sgModel = SG_filtering(window_length = window_length,
-                           polyorder=polyorder, deriv = deriv)
+    sgModel = SG_filtering(window_length=window_length, polyorder=polyorder, deriv=deriv)
     return sgModel
 
-
-
-# page content
+# Page content
 st.set_page_config(page_title="NIR Online-Data preprocessing", page_icon=":rocket:", layout="wide")
-
 st.markdown("# Spectral preprocessing")
 
-dataSource = st.radio("Upload your data or use our example.",
-                      ["Example data 1", "Upload data manually"])
-
-method = st.radio("Select a preprocessing method",
-                  ["CWT","SNV","MSC","SG_Smooth","SG_Derivate"],
-                  horizontal=True)
+dataSource = st.radio("Upload your data or use our example.", ["Example data 1", "Upload data manually"])
+method = st.radio("Select a preprocessing method", ["CWT", "SNV", "MSC", "SG_Smooth", "SG_Derivate"], horizontal=True)
 
 if dataSource == "Example data 1":
     X, y, wv = simulateNIR()
@@ -67,27 +52,21 @@ if dataSource == "Example data 1":
     y = pd.DataFrame(y, columns=["Reference values"], index=sampleNames)
 
 elif dataSource == "Upload data manually":
-    uploaded_file = st.file_uploader("Upload your spectra here","csv")
+    uploaded_file = st.file_uploader("Upload your spectra here", "csv")
     if uploaded_file is not None:
-        X = pd.read_csv(uploaded_file,index_col=0)
+        X = pd.read_csv(uploaded_file, index_col=0)
         wv = np.array(X.columns).astype("float")
         sampleNames = X.index
-
-
 
 if "X" in list(locals().keys()):
     if method == "CWT":
         ppModel = dataProcessing_cwt(X)
-
     elif method == "SNV":
         ppModel = dataProcessing_snv(X)
-
     elif method == "MSC":
         ppModel = dataProcessing_msc(X)
-
     elif method == "SG_Smooth":
         ppModel = dataProcessing_sg_smooth(X)
-
     elif method == "SG_Derivate":
         ppModel = dataProcessing_sg_derivate(X)
 
@@ -103,9 +82,9 @@ if "X" in list(locals().keys()):
 
     if "ppModel" in list(locals().keys()):
         st.markdown("## Apply the preprocess model to another spectral set")
-        uploaded_file_new = st.file_uploader("Apply the preprocess model to another spectral set","csv", label_visibility='collapsed')
+        uploaded_file_new = st.file_uploader("Apply the preprocess model to another spectral set", "csv", label_visibility='collapsed')
         if uploaded_file_new is not None:
-            Xnew = pd.read_csv(uploaded_file_new,index_col=0)
+            Xnew = pd.read_csv(uploaded_file_new, index_col=0)
             wv_new = np.array(Xnew.columns).astype("float")
             if np.sum(wv_new != wv) > 0:
                 st.error("The wavelength range of the uploaded spectra is not the same as the uploaded spectra.")
@@ -122,4 +101,3 @@ if "X" in list(locals().keys()):
                 Xnew_preprocessed = ppModel.transform(Xnew.to_numpy())
                 Xnew_preprocessed = pd.DataFrame(Xnew_preprocessed, columns=wv, index=sampleNames_new)
                 plotSPC(Xnew_preprocessed)
-
