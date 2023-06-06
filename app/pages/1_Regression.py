@@ -28,6 +28,7 @@ def step1():
         pass
 
     if use_example == "Example data 1":
+        # Use example data
         X, y, wv = simulateNIR()
         sampleNames = [f"Sample_{i}" for i in range(X.shape[0])]
         X = pd.DataFrame(X, columns=wv, index=sampleNames)
@@ -45,6 +46,7 @@ def step1():
             plotRef_reg(y)
 
     elif use_example == "Upload data manually":
+        # Upload data manually
         st.info(
             "The spectral file you upload needs to meet the requirements such that (1) each row is a spectrum of a sample, (2) the first row is the wavelength, and (3) the first column is the name of the sample.",
             icon="ℹ️",
