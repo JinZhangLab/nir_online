@@ -44,6 +44,18 @@ def plotSPC(X, title="NIR spectra"):
                      fileName="Spectra", label="Download spectral file")
 
 def pltPCAscores_2d(scores, Vars = None, title="PCA scores"):
+    """
+    Plots the PCA scores for a given set of samples in 2D.
+
+    Args:
+    scores (pandas.DataFrame): A DataFrame containing the PCA scores for each sample. The index should contain the sample names and the columns should contain the PCA scores.
+    Vars (list): A list containing the explained variance ratio for the first two principal components. Default is None.
+    title (str): The title of the plot. Default is "PCA scores".
+
+    Returns:
+    None
+    """
+
     fig, ax = plt.subplots()
     ax.scatter(scores.iloc[:, 0], scores.iloc[:, 1])
 
