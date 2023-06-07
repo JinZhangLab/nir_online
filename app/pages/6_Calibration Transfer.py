@@ -5,7 +5,7 @@ import numpy as np
 from pynir.Calibration import pls
 from pynir.CalibrationTransfer import NS_PFCE, SS_PFCE, FS_PFCE, MT_PFCE
 
-from tools.dataManipulationCT import get_Tablet
+from tools.dataManipulation import get_Tablet
 from tools.dataManipulation import download_csv
 from tools.display import plotSPC, plotRef_reg, plotPrediction_reg, plotRegressionCoefficients
 
