@@ -14,6 +14,7 @@ import numpy as np
 
 import os
 from scipy.io import loadmat
+
 basePath = os.path.split(os.path.realpath(__file__))[0]
 
 
@@ -64,7 +65,6 @@ def download_csv_md(df, index=True, columns=True, index_label=None, fileName="da
     st.markdown(link, unsafe_allow_html=True)
 
 
-
 @st.cache_data
 def get_Tablet():
     """
@@ -76,11 +76,14 @@ def get_Tablet():
     """
     data = loadmat(basePath+"/Data/Tablet.mat")
     dataOut = dict()
-    dataOut["Cal"] = {"X":(data["Xcal1"],data["Xcal2"]),"y":data["ycal"]}
-    dataOut["Trans"] = {"X":(data["Xtrans1"],data["Xtrans2"]),"y":data["ytrans"]}
-    dataOut["Test"] = {"X":(data["Xtest1"],data["Xtest2"]),"y":data["ytest"]}
+    dataOut["Cal"] = {"X": (data["Xcal1"], data["Xcal2"]), "y": data["ycal"]}
+    dataOut["Trans"] = {
+        "X": (data["Xtrans1"], data["Xtrans2"]), "y": data["ytrans"]}
+    dataOut["Test"] = {
+        "X": (data["Xtest1"], data["Xtest2"]), "y": data["ytest"]}
     dataOut["wv"] = data["wv"]
     return dataOut
+
 
 @st.cache_data
 def get_PlantLeaf():
@@ -93,11 +96,12 @@ def get_PlantLeaf():
     """
     data = loadmat(basePath+"/Data/PlantLeaf.mat")
     dataOut = dict()
-    dataOut["Cal"] = {"X":(data["Xcal1"],data["Xcal2"]),"y":data["ycal"]}
-    dataOut["Trans"] = {"X":(data["Xtrans1"],data["Xtrans2"]),"y":data["ytrans"]}
-    dataOut["Test"] = {"X":(data["Xtest1"],data["Xtest2"]),"y":data["ytest"]}
+    dataOut["Cal"] = {"X": (data["Xcal1"], data["Xcal2"]), "y": data["ycal"]}
+    dataOut["Trans"] = {"X": (data["Xtrans1"], data["Xtrans2"]), "y": data["ytrans"]}
+    dataOut["Test"] = {"X": (data["Xtest1"], data["Xtest2"]), "y": data["ytest"]}
     dataOut["wv"] = data["wv"]
     return dataOut
+
 
 @st.cache_data
 def get_Corn():
@@ -110,13 +114,16 @@ def get_Corn():
     """
     data = loadmat(basePath+"/Data/Corn.mat")
     dataOut = dict()
-    dataOut["Cal"] = {"X":(data["Xcal1"],data["Xcal2"],data["Xcal3"]),"y":data["ycal"]}
-    dataOut["Trans"] = {"X":(data["Xtrans1"],data["Xtrans2"],data["Xtrans3"]),"y":data["ytrans"]}
-    dataOut["Test"] = {"X":(data["Xtest1"],data["Xtest2"],data["Xtest3"]),"y":data["ytest"]}
+    dataOut["Cal"] = {"X": (data["Xcal1"], data["Xcal2"],
+                            data["Xcal3"]), "y": data["ycal"]}
+    dataOut["Trans"] = {
+        "X": (data["Xtrans1"], data["Xtrans2"], data["Xtrans3"]), "y": data["ytrans"]}
+    dataOut["Test"] = {
+        "X": (data["Xtest1"], data["Xtest2"], data["Xtest3"]), "y": data["ytest"]}
     dataOut["wv"] = data["wv"]
     return dataOut
 
-    
+
 if __name__ == "__main__":
     data = get_Tablet()
     print(data)
