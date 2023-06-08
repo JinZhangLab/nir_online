@@ -122,8 +122,9 @@ def step3():
     plsdaModel = st.session_state["plsdaModel"]
 
     st.markdown("Import your NIR spectra data here for prediction")
-    uploaded_file = st.file_uploader("X for prediction", "csv", label_visibility="hidden")
+    uploaded_file = st.file_uploader("X for prediction_clf", "csv", label_visibility="hidden")
     if uploaded_file is not None:
+        st.write(uploaded_file)
         X = pd.read_csv(uploaded_file, index_col=0)
         wv = np.array(X.columns).astype("float")
         sampleName = X.index
@@ -140,7 +141,7 @@ def step3():
             st.dataframe(yhat)
             download_csv(yhat, fileName="Prediction", label="Download results", columns=["Prediction"])
         st.markdown("### Import your reference values for validation")
-        uploaded_file = st.file_uploader("y for prediction", "csv", label_visibility="hidden")
+        uploaded_file = st.file_uploader("y for prediction_clf", "csv", label_visibility="hidden")
         if uploaded_file is not None:
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
