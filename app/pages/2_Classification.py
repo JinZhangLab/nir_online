@@ -10,22 +10,17 @@ from tools.dataManipulation import download_csv
 
 def step1():
     st.markdown("# Step 1. Load data")
-    st.markdown("---")
+    st.markdown("### Upload your data or use our example.")
 
-    use_example = st.radio("Upload your data or use our example.", ["Example data 1", "Upload data manually"])
+    use_example = st.radio(
+        "Upload your data or use our example.", ["Example data 1", "Upload data manually"],
+        on_change=changeClf_state, label_visibility="collapsed")
 
     if use_example == "Example data 1":
-        try:
-            del st.session_state.X, st.session_state.y, st.session_state.plsdaModel
-        except:
-            pass
         X, y, wv = simulateNIR(refType=3)
         sampleNames = [f"Sample_{i}" for i in range(X.shape[0])]
         X = pd.DataFrame(X, columns=wv, index=sampleNames)
         y = pd.DataFrame(y, columns=["Reference values"], index=sampleNames)
-
-        st.session_state["X"] = X
-        st.session_state["y"] = y
 
         col1, col2 = st.columns([1, 1])
         with col1:
@@ -35,40 +30,30 @@ def step1():
             plotRef_clf(y)
 
     elif use_example == "Upload data manually":
-        try:
-            del st.session_state.X, st.session_state.y, st.session_state.plsdaModel
-        except:
-            pass
-
         st.info("The spectral file you upload needs to meet the requirements such that (1) each row is a spectrum of a sample, (2) the first row is the wavelength, and (3) the first column is the name of the sample.", icon="ℹ️")
         
         col1, col2 = st.columns([1, 1])
         with col1:
-            uploaded_file = st.file_uploader("Upload your spectra here", "csv")
+            uploaded_file = st.file_uploader("Upload your spectra here", "csv", key="clf_Xcal"+str(st.session_state.clf))
             if uploaded_file is not None:
                 X = pd.read_csv(uploaded_file, index_col=0)
                 wv = np.array(X.columns).astype("float")
                 sampleNames = X.index
 
                 plotSPC(X)
-                st.session_state["X"] = X
 
         with col2:
-            uploaded_file = st.file_uploader("Upload your reference data here", "csv")
+            uploaded_file = st.file_uploader("Upload your reference data here", "csv", key="clf_ycal"+str(st.session_state.clf))
             if uploaded_file is not None:
                 y = pd.read_csv(uploaded_file, index_col=0)
-                st.markdown("### Reference values uploaded.")
                 
                 plotRef_clf(y)
-                st.session_state["y"] = y
+    if "X" in locals() and "y" in locals():
+        return X, y
 
-
-def step2():
+def step2(X, y):
     st.markdown("# Step 2. Cross validation")
     st.markdown("---")
-
-    X = st.session_state["X"]
-    y = st.session_state["y"]
 
     with st.container():
         st.markdown("### Set parameters manually for cross validation")
@@ -77,7 +62,6 @@ def step2():
 
     plsdaModel = plsda(n_components=n_components)
     plsdaModel.fit(X.to_numpy(), y.to_numpy())
-    st.session_state["plsdaModel"] = plsdaModel
 
     yhat_cv = plsdaModel.crossValidation_predict(n_fold)
     accuracy_cv = []
@@ -102,7 +86,6 @@ def step2():
 
     plsdaModel = plsda(n_components=optLV)
     plsdaModel.fit(X, y)
-    st.session_state["plsdaModel"] = plsdaModel
 
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -115,16 +98,15 @@ def step2():
         cm_cv = pd.DataFrame(data=cm_cv, index=plsdaModel.lda.classes_, columns=plsdaModel.lda.classes_)
         plot_confusion_matrix(cm_cv, plsdaModel.lda.classes_, title="Confusion Matrix-Cross validation")
 
+    return plsdaModel
 
-def step3():
+def step3(plsdaModel):
     st.markdown("# Step 3. Prediction")
     st.markdown("---")
-    plsdaModel = st.session_state["plsdaModel"]
 
     st.markdown("Import your NIR spectra data here for prediction")
-    uploaded_file = st.file_uploader("X for prediction_clf", "csv", label_visibility="hidden")
+    uploaded_file = st.file_uploader("X for prediction_clf", "csv", label_visibility="hidden", key="clf_Xtest"+str(st.session_state.clf))
     if uploaded_file is not None:
-        st.write(uploaded_file)
         X = pd.read_csv(uploaded_file, index_col=0)
         wv = np.array(X.columns).astype("float")
         sampleName = X.index
@@ -141,7 +123,7 @@ def step3():
             st.dataframe(yhat)
             download_csv(yhat, fileName="Prediction", label="Download results", columns=["Prediction"])
         st.markdown("### Import your reference values for validation")
-        uploaded_file = st.file_uploader("y for prediction_clf", "csv", label_visibility="hidden")
+        uploaded_file = st.file_uploader("y for prediction_clf", "csv", label_visibility="hidden", key="clf_ytest"+str(st.session_state.clf))
         if uploaded_file is not None:
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
@@ -150,14 +132,33 @@ def step3():
                 cm = pd.DataFrame(data=cm, index=plsdaModel.lda.classes_, columns=plsdaModel.lda.classes_)
                 plot_confusion_matrix(cm, plsdaModel.lda.classes_, title="Confusion Matrix-Prediction")
 
+def changeClf_state():
+    st.session_state.clf += 1
 
 # page content
 st.set_page_config(page_title="NIR Online Classification", page_icon="📈", layout="wide")
 
-step1()
+if 'clf' not in st.session_state:
+    st.session_state.clf = 0
 
-if 'X' in st.session_state and 'y' in st.session_state and st.session_state["X"].shape[0] == len(st.session_state["y"]):
-    step2()
+st.markdown("""
+            # Classification for NIR spectra
+            ---
+            Commonly, the classification of NIR spectra includes three steps: 
+            (1) Calibration, 
+            (2) Cross validation for determining the optimal calibration hyper-parameters, 
+            (3) Prediction on new measured spectra. \n
+            The spectra (X) and reference values (y) file accepted by tools in this site only support  csv format, with sample in rows, and wavelength in columns. 
+            The first row contains the wavelength, and the first column is the sample name. If your data is not in the supported format, convert it at the utils page on our site. 
+            """)
 
-if 'plsdaModel' in st.session_state:
-    step3()
+results1 =step1()
+if results1 is not None:
+    X, y = results1
+
+if 'X' in locals() and "y" in locals() and  X.shape[0] == len(y):
+    plsdaModel = step2(X, y)
+
+if 'plsdaModel' in locals():
+    if plsdaModel is not None:
+        step3(plsdaModel)

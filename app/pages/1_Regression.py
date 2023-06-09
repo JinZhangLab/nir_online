@@ -19,13 +19,9 @@ def step1():
     st.markdown("### Upload your data or use our example.")
 
     use_example = st.radio(
-        "1.1", ["Example data 1", "Upload data manually"], on_change=st.cache_data.clear(), label_visibility="collapsed"
+        "Upload your data or use our example.", ["Example data 1", "Upload data manually"],
+          on_change=changeReg_state, label_visibility="collapsed"
     )
-
-    try:
-        del st.session_state.X, st.session_state.y, st.session_state.plsModel
-    except:
-        pass
 
     if use_example == "Example data 1":
         # Use example data
@@ -33,9 +29,6 @@ def step1():
         sampleNames = [f"Sample_{i}" for i in range(X.shape[0])]
         X = pd.DataFrame(X, columns=wv, index=sampleNames)
         y = pd.DataFrame(y, columns=["Reference values"], index=sampleNames)
-
-        st.session_state["X"] = X
-        st.session_state["y"] = y
 
         col1, col2 = st.columns([1, 1])
 
@@ -54,30 +47,25 @@ def step1():
 
         col1, col2 = st.columns([1, 1])
         with col1:
-            uploaded_file = st.file_uploader("Upload your spectra here", "csv")
+            uploaded_file = st.file_uploader("Upload your spectra here for calibration", "csv", key="reg_Xcal"+str(st.session_state.reg))
             if uploaded_file is not None:
                 X = pd.read_csv(uploaded_file, index_col=0)
                 wv = np.array(X.columns).astype("float")
                 sampleNames = X.index
 
                 plotSPC(X)
-                st.session_state["X"] = X
 
         with col2:
-            uploaded_file = st.file_uploader("Upload your reference data here", "csv")
+            uploaded_file = st.file_uploader("Upload your reference data here for calibration", "csv", key="reg_ycal"+str(st.session_state.reg))
             if uploaded_file is not None:
                 y = pd.read_csv(uploaded_file, index_col=0)
                 plotRef_reg(y)
-                st.session_state["y"] = y
-
+    if "X" in locals() and "y" in locals():
+        return X, y
 
 # Step 2: Cross validation
-def step2():
+def step2(X, y):
     st.markdown("## Step 2. Cross validation")
-
-    X = st.session_state["X"]
-    y = st.session_state["y"]
-
     with st.container():
         st.markdown("### Set the parameters for cross validation.")
         n_components = st.slider("The max number of pls components in cross validation.", 1, 20, 10)
@@ -85,7 +73,6 @@ def step2():
 
     plsModel = pls(n_components=n_components)
     plsModel.fit(X.to_numpy(), y.to_numpy())
-    st.session_state["plsModel"] = plsModel
 
     yhat = plsModel.predict(X.to_numpy(), n_components=np.arange(n_components) + 1)
     yhat_cv = plsModel.crossValidation_predict(nfold)
@@ -106,7 +93,7 @@ def step2():
 
     st.markdown("### Set the optimal number of component.")
     optLV = st.slider("optLV", 1, n_components, int(np.argmin(rmsecv) + 1))
-    st.session_state["plsModel"].optLV = optLV
+    plsModel.optLV = optLV
 
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -123,15 +110,16 @@ def step2():
             columns=y.index,
         )
         plotPrediction_reg(ycv, xlabel="Reference", ylabel="Prediction", title=f"Prediction with {optLV} LVs")
-
+    
+    if "plsModel" in locals():
+        return plsModel
 
 # Step 3: Prediction
-def step3():
-    plsModel = st.session_state["plsModel"]
+def step3(plsModel):
     st.markdown("## Step 3. Prediction.")
 
     st.markdown("### Import your NIR spectra data for prediction")
-    uploaded_file = st.file_uploader("X for prediction_reg", "csv", label_visibility="hidden")
+    uploaded_file = st.file_uploader("X for prediction_reg", "csv", label_visibility="hidden", key="reg_Xtest"+str(st.session_state.reg))
     if uploaded_file is not None:
         X = pd.read_csv(uploaded_file, index_col=0)
         wv = np.array(X.columns).astype("float")
@@ -147,36 +135,32 @@ def step3():
         with col2:
             st.markdown("### Prediction results")
             st.dataframe(yhat)
-            download_csv(
-                yhat,
-                index=True,
-                columns=True,
-                index_label="Sample Name",
-                fileName="Prediction",
-                label="Download Prediction",
-            )
+            download_csv(yhat, index=True, columns=True, index_label="Sample Name",
+                fileName="Prediction", label="Download Prediction")
 
         st.markdown("### Import your reference values for visualization")
-        uploaded_file = st.file_uploader("y for prediction_reg", "csv", label_visibility="hidden")
+        uploaded_file = st.file_uploader("y for prediction_reg", "csv", label_visibility="hidden", key="reg_ytest"+str(st.session_state.reg))
         if uploaded_file is not None:
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
             with col1:
-                Predictions = pd.DataFrame(
-                    data=[y.to_numpy().flatten(), yhat.to_numpy().flatten()],
-                    index=["Reference", "Prediction"],
-                    columns=y.index,
-                )
-                plotPrediction_reg(
-                    Predictions, xlabel="Reference", ylabel="Prediction", title="Predictions"
-                )
+                Predictions = pd.DataFrame( data=[y.to_numpy().flatten(), yhat.to_numpy().flatten()],
+                    index=["Reference", "Prediction"], columns=y.index)
+                plotPrediction_reg(Predictions, xlabel="Reference", ylabel="Prediction", title="Predictions" )
 
+
+def changeReg_state():
+    st.session_state.reg += 1
 
 # Page content
 st.set_page_config(page_title="NIR Online-Regression", page_icon=":eyeglasses:", layout="wide")
-st.markdown('---')
+
+if 'reg' not in st.session_state:
+    st.session_state.reg = 0
+
 st.markdown("""
             # Regression for NIR spectra
+            ---
             Commonly, the regression of NIR spectra includes three steps: 
             (1) Calibration, 
             (2) Cross validation for determining the optimal calibration hyper-parameters, 
@@ -185,10 +169,13 @@ st.markdown("""
             The first row contains the wavelength, and the first column is the sample name. If your data is not in the supported format, convert it at the utils page on our site. 
             """)
 
-step1()
+results1 = step1()
+if results1 is not None:
+    X, y = results1
 
-if 'X' in st.session_state and 'y' in st.session_state and st.session_state["X"].shape[0] == len(st.session_state["y"]):
-    step2()
+if 'X' in locals() and "y" in locals() and  X.shape[0] == len(y):
+    plsModel = step2(X, y)
 
-if 'plsModel' in st.session_state:
-    step3()
+if 'plsModel' in locals():
+    if plsModel is not None:
+        step3(plsModel)
