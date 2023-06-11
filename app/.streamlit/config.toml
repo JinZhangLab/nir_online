@@ -1,3 +1,4 @@
 
 # Default: true
 enableCORS = false
+enableWebsocketCompression=false
