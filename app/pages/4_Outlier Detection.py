@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 from pynir.utils import simulateNIR
-from pynir.OutlierDection import outlierDection_PLS
+from pynir.OutlierDetection import outlierDetection_PLS
 from tools.display import plotSPC, plotRef_reg
 
 import matplotlib.pyplot as plt
@@ -42,7 +42,7 @@ if "X" in locals() and "y" in locals():
     conf = st.slider("Confidence level", 0.80, 0.99, 0.90)
 
     # Create an instance of the outlier detection class
-    od = outlierDection_PLS(ncomp=ncomp, conf=conf)
+    od = outlierDetection_PLS(ncomp=ncomp, conf=conf)
 
     # Fit the model on X and y
     od.fit(X, y)
@@ -57,6 +57,7 @@ if "X" in locals() and "y" in locals():
     fig, ax = plt.subplots()
     od.plot_HotellingT2_Q(Q, Tsq, Q_conf, Tsq_conf, ax=ax)
     ax.set_title(f"Number of outliers: {n_outliers}")
+    
     st.pyplot(fig)
 
     # Download the outlier detection results
