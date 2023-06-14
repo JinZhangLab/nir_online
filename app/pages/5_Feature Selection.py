@@ -65,12 +65,14 @@ def featureSelection(X, y, options=None):
     return FS, Imp
 
 
-# Create a title and description
-st.title("Feature Selection for NIR Spectroscopy")
+# Page content
+st.set_page_config(page_title="NIR Online-Feature Selection", page_icon=":rocket:", layout="centered")
+st.title("Feature Selection for NIR spectral analysis")
 st.markdown("### Upload your data or use our example.")
 
 # Choose between example data or manual upload
-use_example = st.radio("Choose an option", ["Example data 1", "Upload data manually"])
+use_example = st.radio("Choose an option", ["Example data 1", "Upload data manually"],
+                       key="feature_selection_data_selection")
 
 if use_example == "Example data 1":
     X, y, wv = simulateNIR()

@@ -20,7 +20,7 @@ def step1():
 
     use_example = st.radio(
         "Upload your data or use our example.", ["Example data 1", "Upload data manually"],
-          on_change=changeReg_state, label_visibility="collapsed"
+          on_change=changeReg_state, label_visibility="collapsed", key="reg_data_selection"
     )
 
     if use_example == "Example data 1":
@@ -98,16 +98,16 @@ def step2(X, y):
     col1, col2 = st.columns([1, 1])
     with col1:
         modelCoefficients = pd.DataFrame(
-            data=plsModel.model["B"][:, optLV - 1],
-            index=[-1] + list(X.columns),
-            columns=["Coefficients"],
+            data=plsModel.model["B"][:, optLV - 1].reshape(1, -1),
+            index=["Coefficients"],
+            columns=[-1] + list(X.columns),
         )
         plotRegressionCoefficients(modelCoefficients, title=f"Regression Coefficients with {optLV} LVs")
     with col2:
         ycv = pd.DataFrame(
-            data=[y.to_numpy().flatten(), yhat[:, optLV - 1], yhat_cv[:, optLV - 1]],
-            index=["Reference", "Calibration", "Cross Validation"],
-            columns=y.index,
+            data=np.column_stack([y.to_numpy().ravel(), yhat[:, optLV - 1], yhat_cv[:, optLV - 1]]),
+            columns=["Reference", "Calibration", "Cross Validation"],
+            index=y.index,
         )
         plotPrediction_reg(ycv, xlabel="Reference", ylabel="Prediction", title=f"Prediction with {optLV} LVs")
     
@@ -144,8 +144,8 @@ def step3(plsModel):
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
             with col1:
-                Predictions = pd.DataFrame( data=[y.to_numpy().flatten(), yhat.to_numpy().flatten()],
-                    index=["Reference", "Prediction"], columns=y.index)
+                Predictions = pd.DataFrame(data=np.column_stack([y.to_numpy().flatten(), yhat.to_numpy().flatten()]),
+                    columns=["Reference", "Prediction"], index=y.index)
                 plotPrediction_reg(Predictions, xlabel="Reference", ylabel="Prediction", title="Predictions" )
 
 
@@ -153,7 +153,7 @@ def changeReg_state():
     st.session_state.reg += 1
 
 # Page content
-st.set_page_config(page_title="NIR Online-Regression", page_icon=":eyeglasses:", layout="wide")
+st.set_page_config(page_title="NIR Online-Regression", page_icon=":eyeglasses:", layout="centered")
 
 if 'reg' not in st.session_state:
     st.session_state.reg = 0

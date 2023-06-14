@@ -124,6 +124,38 @@ def get_Corn():
     return dataOut
 
 
+def predict_reg(X, model):
+    """
+    Predicts the reference values for a set of spectra using a linear regression
+    model.
+
+    Args:
+        X (pandas.DataFrame): A DataFrame containing the spectra to be
+        predicted. Each row represents a sample and each column represents a
+        wavelength. model (pandas.DataFrame): A DataFrame containing the
+        coefficients of the linear regression model. The first element
+        represents the intercept and each subsequent element represents the
+        coefficient for a wavelength.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the predicted reference values.
+        Each row represents a sample and the only column represents the
+        predicted reference value.
+
+    Computes the predicted reference values for the input spectra using the
+    linear regression model. The input spectra are augmented with a column of
+    ones to account for the intercept term in the model. The dot product of the
+    augmented spectra and the model coefficients is computed to obtain the
+    predicted reference values. The resulting DataFrame is returned with the
+    same index as the input spectra and a single column named "Prediction".
+    """
+    ones = np.ones((X.to_numpy().shape[0], 1))
+    X_aug = np.hstack((ones, X.to_numpy()))
+    yhat = np.dot(X_aug, np.reshape(model.to_numpy(), (-1, 1)))
+    return pd.DataFrame(yhat, index=X.index.to_numpy(), columns=["Prediction"])
+
+
+
 if __name__ == "__main__":
     data = get_Tablet()
     print(data)

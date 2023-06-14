@@ -87,7 +87,7 @@ def pltPCAscores_2d(scores, Vars = None, title="PCA scores"):
         download_csv(scores, index = True, columns=True, index_label="Sample name",
                      fileName="PCAscores", label="Download PCA scores file")
 
-def plotRef_reg(y):
+def plotRef_reg(y, title = "Reference values"):
     """
     Plots a histogram of the reference values in a pandas DataFrame for regression.
 
@@ -103,7 +103,7 @@ def plotRef_reg(y):
     ax.hist(y, rwidth=0.9)
     ax.set_xlabel('Ranges')
     ax.set_ylabel('Count')
-    ax.set_title('Reference values', loc='center')
+    ax.set_title(title, loc='center')
 
     tab1, tab2 = st.tabs(["Figure", "Download"])
     with tab1:
@@ -181,7 +181,7 @@ def plotPrediction_reg(y, xlabel="Reference", ylabel="Prediction", title="NIR on
     for example:
     y = pd.DataFrame(
         data=[[0.1, 0.2, 0.3, 0.4], [0.2, 0.2, 0.3, 0.4], [0.2, 0.3, 0.2, 0.4]],
-        index = ["Reference", "method1", "methods2"], columns = ["Sample1","Sample2","Sample3","Sample4"])
+        columns = ["Reference", "method1", "methods2"], index = ["Sample1","Sample2","Sample3"])
     """
     fig, ax = plt.subplots()
     if cmap is None:
@@ -190,18 +190,18 @@ def plotPrediction_reg(y, xlabel="Reference", ylabel="Prediction", title="NIR on
         markers = ["o", "v", "s", "p", "P", "*", "X", "D", "d", "h"]
     RMSE = []
     R2 = []
-    for i, row in enumerate(y.index):
+    for i, col in enumerate(y.columns):
         if i==0:
-            ax.plot([np.min(y.iloc[0, :])*0.95, np.max(y.iloc[0, :])*1.05], [np.min(y.iloc[0, :])*0.95, np.max(y.iloc[0, :])*1.05], color='black', label="y=x")
+            ax.plot([np.min(y.iloc[:, 0])*0.95, np.max(y.iloc[:, 0])*1.05], [np.min(y.iloc[:, 0])*0.95, np.max(y.iloc[:, 0])*1.05], color='black', label="y=x")
         else:
-            ax.scatter(y.iloc[0, :], y.iloc[i, :], color=cmap(i), marker=markers[i], label=row)
-            RMSE.append(np.sqrt(mean_squared_error(y.iloc[0, :], y.iloc[i, :])))
-            R2.append(r2_score(y.iloc[0, :], y.iloc[i, :])) 
+            ax.scatter(y.iloc[:, 0], y.iloc[:, i], color=cmap(i), marker=markers[i], label=col)
+            RMSE.append(np.sqrt(mean_squared_error(y.iloc[:, 0], y.iloc[:, i])))
+            R2.append(r2_score(y.iloc[:, 0], y.iloc[:, i])) 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title, loc='center')
     # RMSE and R2 for all methods, not only the first one, or the average of all methods
-    textstr = "\n".join([f"{row}: RMSE={rmse:.2f}, R2={r2:.2f}" for row, rmse, r2 in zip(y.index[1:], RMSE, R2)])
+    textstr = "\n".join([f"{col}: RMSE={rmse:.2f}, R2={r2:.2f}" for col, rmse, r2 in zip(y.columns[1:], RMSE, R2)])
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.2)
     ax.text(0.4, 0.2, textstr, transform=ax.transAxes, fontsize=10, verticalalignment='top', bbox=props)
 
@@ -215,10 +215,10 @@ def plotPrediction_reg(y, xlabel="Reference", ylabel="Prediction", title="NIR on
         download_csv(y,  index = True, columns=True, index_label="Sample name", 
                      fileName="Prediction", label="Download file")
 
-def plotRegressionCoefficients(b, title = "Regression coefficients"):
-    wv = np.array(b.index, dtype=float)
+def plotRegressionCoefficients(b, title = "Regression coefficients", index_label="Wavelength (nm)"):
+    wv = np.array(b.columns, dtype=float)
     fig, ax = plt.subplots()
-    ax.plot(wv[1:], b.to_numpy()[1:])
+    ax.plot(wv[1:], b.to_numpy().ravel()[1:])
     ax.set_xlabel("Wavenumber (nm)")
     ax.set_ylabel("Coefficients")
     ax.set_title(title)
@@ -226,9 +226,9 @@ def plotRegressionCoefficients(b, title = "Regression coefficients"):
     with col1:
         st.pyplot(fig)
     with col2:
-        download_img(fig, fileName="RegressionCoefficients", label="Download image")
-        download_csv(b,  index = True, columns=True, index_label="Wavenumber",
-                     fileName="RegressionCoefficients", label="Download file")
+        download_img(fig, fileName="Regression Coefficients", label="Download image")
+        download_csv(b,  index = True, columns=True, index_label=index_label,
+                     fileName="Regression Coefficients", label="Download model")
 
 # plot for classfication by plsda
 # plot rmsecv variation against lv

@@ -14,7 +14,7 @@ def step1():
 
     use_example = st.radio(
         "Upload your data or use our example.", ["Example data 1", "Upload data manually"],
-        on_change=changeClf_state, label_visibility="collapsed")
+        on_change=changeClf_state, label_visibility="collapsed", key="clf_data_selection")
 
     if use_example == "Example data 1":
         X, y, wv = simulateNIR(refType=3)
@@ -61,18 +61,18 @@ def step2(X, y):
         n_fold = st.slider("The number of folds in cross validation.", 2, 20, 10)
 
     plsdaModel = plsda(n_components=n_components)
-    plsdaModel.fit(X.to_numpy(), y.to_numpy())
+    plsdaModel.fit(X.to_numpy(), y.to_numpy().ravel())
 
     yhat_cv = plsdaModel.crossValidation_predict(n_fold)
     accuracy_cv = []
     f1_cv = []
     for i in range(yhat_cv.shape[1]):
         if len(plsdaModel.lda.classes_) == 2:
-            report_cv = binaryClassificationReport(y, yhat_cv[:, i])
+            report_cv = binaryClassificationReport(y.to_numpy().ravel(), yhat_cv[:, i])
             accuracy_cv.append(report_cv["accuracy"])
             f1_cv.append(report_cv["f1"])
         elif len(plsdaModel.lda.classes_) > 2:
-            report_cv = multiClassificationReport(y, yhat_cv[:, i])
+            report_cv = multiClassificationReport(y.to_numpy().ravel(), yhat_cv[:, i])
             accuracy_cv.append(np.mean([rep["accuracy"] for rep in report_cv.values()]))
             f1_cv.append(np.mean([rep["f1"] for rep in report_cv.values()]))
 
@@ -85,16 +85,16 @@ def step2(X, y):
     optLV = st.slider("optLV", 1, n_components, int(np.argmax(accuracy_cv) + 1))
 
     plsdaModel = plsda(n_components=optLV)
-    plsdaModel.fit(X, y)
+    plsdaModel.fit(X.to_numpy(), y.to_numpy().ravel())
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        yhat_c = plsdaModel.predict(X)
-        cm_c = confusion_matrix(y, yhat_c)
+        yhat_c = plsdaModel.predict(X.to_numpy())
+        cm_c = confusion_matrix(y.to_numpy().ravel(), yhat_c)
         cm_c = pd.DataFrame(data=cm_c, index=plsdaModel.lda.classes_, columns=plsdaModel.lda.classes_)
         plot_confusion_matrix(cm_c, plsdaModel.lda.classes_, title="Confusion Matrix-training set")
     with col2:
-        cm_cv = confusion_matrix(y, yhat_cv[:, optLV-1])
+        cm_cv = confusion_matrix(y.to_numpy().ravel(), yhat_cv[:, optLV-1])
         cm_cv = pd.DataFrame(data=cm_cv, index=plsdaModel.lda.classes_, columns=plsdaModel.lda.classes_)
         plot_confusion_matrix(cm_cv, plsdaModel.lda.classes_, title="Confusion Matrix-Cross validation")
 
@@ -128,7 +128,7 @@ def step3(plsdaModel):
             y = pd.read_csv(uploaded_file, index_col=0)
             _, col1, _ = st.columns([1, 2, 1])
             with col1:
-                cm = plsdaModel.get_confusion_matrix(X.to_numpy(), y.to_numpy())
+                cm = plsdaModel.get_confusion_matrix(X.to_numpy(), y.to_numpy().ravel())
                 cm = pd.DataFrame(data=cm, index=plsdaModel.lda.classes_, columns=plsdaModel.lda.classes_)
                 plot_confusion_matrix(cm, plsdaModel.lda.classes_, title="Confusion Matrix-Prediction")
 
@@ -136,7 +136,7 @@ def changeClf_state():
     st.session_state.clf += 1
 
 # page content
-st.set_page_config(page_title="NIR Online Classification", page_icon="📈", layout="wide")
+st.set_page_config(page_title="NIR Online-Classification", page_icon="📈", layout="centered")
 
 if 'clf' not in st.session_state:
     st.session_state.clf = 0

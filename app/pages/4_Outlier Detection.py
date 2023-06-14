@@ -6,14 +6,18 @@ from pynir.OutlierDetection import outlierDetection_PLS
 from tools.display import plotSPC, plotRef_reg
 
 import matplotlib.pyplot as plt
+from tools.dataManipulation import download_csv_md, download_img
 
-import base64
+
+# Page content
+st.set_page_config(page_title="NIR Online-Outlier Detection", page_icon=":rocket:", layout="centered")
 
 st.title("Outlier Detection with PLS Regression")
 st.write("This app allows you to upload a CSV file with X and y variables and perform outlier detection using PLS regression.")
 
 st.markdown("### Upload your data or use our example.")
-use_example = st.radio("Choose an option", ["Example data 1", "Upload data manually"])
+use_example = st.radio("Choose an option", ["Example data 1", "Upload data manually"], 
+                       key="Outlier_detection_data_selection")
 
 if use_example == "Example data 1":
     X, y, wv = simulateNIR()
@@ -58,12 +62,12 @@ if "X" in locals() and "y" in locals():
     od.plot_HotellingT2_Q(Q, Tsq, Q_conf, Tsq_conf, ax=ax)
     ax.set_title(f"Number of outliers: {n_outliers}")
     
-    st.pyplot(fig)
-
-    # Download the outlier detection results
-    st.markdown("### Download the outlier detection results")
-    df = pd.DataFrame(data=idxOutlier, columns=["Outlier"])
-    csv = df.to_csv(index=True)
-    b64 = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="OutlierDetection.csv">Download csv file</a>'
-    st.markdown(href, unsafe_allow_html=True)
+    
+    tab1, tab2 = st.tabs(["Figure", "Download"])
+    
+    with tab1:
+        st.pyplot(fig)
+    with tab2:
+        download_img(fig, fileName="Outlier detection results", label="Download figure")
+        download_csv_md(pd.DataFrame(data={"Hotelling T2": Tsq, "Q residuals": Q, "Outlier": idxOutlier}),
+                        "Outlier detection results", label="Download results")

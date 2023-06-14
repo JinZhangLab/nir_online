@@ -5,8 +5,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 from pynir.Calibration import sampleSplit_KS
 from pynir.utils import simulateNIR
-from tools.display import plotSPC, plotRef_reg, plotRef_clf, pltPCAscores_2d
-from tools.dataManipulation import download_csv, download_csv_md, get_Tablet, get_PlantLeaf, get_Corn
+from tools.display import plotSPC, plotRef_reg, plotRef_clf, pltPCAscores_2d, plotRegressionCoefficients, plotPrediction_reg
+from tools.dataManipulation import download_csv, download_csv_md, get_Tablet, get_PlantLeaf, get_Corn, predict_reg
 from sklearn.model_selection import train_test_split
 
 # Simulate NIR Data
@@ -41,9 +41,51 @@ def simulate_nir_data():
         else:
             plotRef_clf(y)
 
+
+
+# prediction with regression model
+def predict_with_regression_model():
+    """
+    Allows the user to upload a regression model and spectra to be predicted, and generates predictions using the model.
+
+    The function prompts the user to upload a regression model and spectra to be predicted in CSV format. If both files are uploaded successfully, the function generates predictions using the regression model and displays the predicted reference values in a DataFrame. The user can also upload reference values for the spectra to be predicted and compare them to the predicted values using a plot.
+
+    Returns:
+        None
+    """
+    st.markdown("## Predict with Regression Model")
+    st.markdown("Upload a regression model and spectra to be predicted in CSV format.")
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        uploaded_model = st.file_uploader("Upload regression model", type="csv")
+        if uploaded_model is not None:
+            model_reg = pd.read_csv(uploaded_model, index_col=0)
+            plotRegressionCoefficients(model_reg)
+    with col2:
+        uploaded_spectra = st.file_uploader("Upload spectra to be predicted", type="csv")
+        if uploaded_spectra is not None:
+            X = pd.read_csv(uploaded_spectra, index_col=0)
+            plotSPC(X, title="Spectra to be predicteds")
+            
+    if "model_reg" in locals() and "X" in locals():
+        y_pred = predict_reg(X, model_reg)
+        
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.markdown("## Predicted Reference Values")
+            st.markdown("The predicted reference values for the uploaded spectra are:")
+            st.dataframe(y_pred)
+        with col2:
+            st.markdown("## Compare Predictions to Reference Values")
+            st.markdown("Upload your reference values for the spectra to be predicted for comparison.")
+            uploaded_ref = st.file_uploader("Upload reference values", type="csv")
+            if uploaded_ref is not None:
+                y = pd.read_csv(uploaded_ref, index_col=0)
+                y_to_plot = pd.DataFrame(data=np.concatenate((y.to_numpy(), y_pred.to_numpy()), axis=1),
+                                         columns=["Reference values", "Predictions"], index=y.index)
+                plotPrediction_reg(y_to_plot)
+
 # Split Sample Set
-
-
 def split_sample_set():
     """Split sample set into calibration and validation set."""
     st.markdown("""
@@ -370,12 +412,13 @@ def example_dataset():
 
 # Page content
 st.set_page_config(page_title="NIR Online-Utils",
-                   page_icon=":rocket:", layout="wide")
+                   page_icon=":rocket:", layout="centered")
 st.markdown("# Tools useful for NIR calibration")
 
 function_sel = st.radio(
     "Tool collection that may be helpful for NIR calibration.",
     ("Simulate NIR data",
+     "Predict with regression model",
      "Split Sample Set",
      "Convert WaveNumber (cm-1) to Wavelength (nm)",
      "Transpose data in CSV file",
@@ -390,6 +433,9 @@ st.markdown("---")
 
 if function_sel == "Simulate NIR data":
     simulate_nir_data()
+
+if function_sel == "Predict with regression model":
+    predict_with_regression_model()
 
 if function_sel == "Split Sample Set":
     split_sample_set()

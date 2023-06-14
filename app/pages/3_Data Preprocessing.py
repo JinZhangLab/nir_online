@@ -39,10 +39,12 @@ def dataProcessing_sg_derivate(X):
     return sgModel
 
 # Page content
-st.set_page_config(page_title="NIR Online-Data preprocessing", page_icon=":rocket:", layout="wide")
+st.set_page_config(page_title="NIR Online-Data preprocessing", page_icon=":rocket:", layout="centered")
 st.markdown("# Spectral preprocessing")
 
-dataSource = st.radio("Upload your data or use our example.", ["Example data 1", "Upload data manually"])
+dataSource = st.radio("Upload your data or use our example.",
+                       ["Example data 1", "Upload data manually"],
+                       key="preprocess_data_selection")
 method = st.radio("Select a preprocessing method", ["CWT", "SNV", "MSC", "SG_Smooth", "SG_Derivate"], horizontal=True)
 
 if dataSource == "Example data 1":
