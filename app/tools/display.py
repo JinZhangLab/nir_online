@@ -362,10 +362,9 @@ def plotVariableSelection(X, FS, xlabel="Wavelength (nm)", ylabel = "Intensity",
     ax2.set_ylabel("Method")
     ax2.set_yticks(np.arange(FS.shape[0])+1)
     ax2.set_yticklabels(FS.index)
-    # 调整子图之间的间距为 0
+
     plt.subplots_adjust(hspace=0)
 
-    # 取消上子图的 x tick 的可见性
     plt.setp(ax1.get_xticklabels(), visible=False)
 
     ax1.spines['bottom'].set_linestyle(' ') 

@@ -25,40 +25,33 @@ def convert_fig(fig, figFormat="pdf"):
     return img
 
 
-def download_img(fig, fileName="Figure", label="Download image"):
-    figFormat = 'pdf'
+def get_download_img_url(fig, figFormat="pdf", fileName="Figure"):
+    # Convert the figure to bytes
     img = convert_fig(fig, figFormat=figFormat)
-    st.download_button(
-        label=label,
-        data=img,
-        file_name=fileName + "." + figFormat,
-        mime="image/"+figFormat,
-        key=str(time.time())
-    )
+    # Encode the bytes to base64
+    b64 = base64.b64encode(img.getvalue()).decode()
+    # Create a markdown link to download the image
+    link = f'<a href="data:image/{figFormat};base64,{b64}" download="{fileName}.{figFormat}">Download image</a>'
+    return link
+
+def download_img(fig, figFormat="pdf", fileName="Figure", label="Download image"):
+    link = get_download_img_url(fig, figFormat=figFormat, fileName=fileName)
+    # Display the link in streamlit
+    st.markdown(link, unsafe_allow_html=True)
+
+
 
 
 @st.cache_data
-def convert_csv(data, index=True, columns=True, index_label=None):
-    return data.to_csv(index=index, header=columns, index_label=index_label).encode('utf-8')
-
-
-def download_csv(data, index=True, columns=True, index_label=None, fileName="data", label="Download"):
-    csv = convert_csv(data, index=index, columns=columns,
-                      index_label=index_label)
-    st.download_button(
-        label=label,
-        data=csv,
-        file_name=fileName + '.csv',
-        mime='text/csv',
-        key=str(time.time())
-    )
-
-
-def download_csv_md(df, index=True, columns=True, index_label=None, fileName="data", label="Download"):
+def get_download_csv_url(df, index=True, columns=True, index_label=None):
     # Convert the dataframe to csv
     csv = df.to_csv(index=index, header=columns, index_label=index_label)
     # Encode the csv to base64
     b64 = base64.b64encode(csv.encode()).decode()
+    return b64
+
+def download_csv(df, index=True, columns=True, index_label=None, fileName="data", label="Download"):
+    b64 = get_download_csv_url(df, index=index, columns=columns, index_label=index_label)
     # Create a markdown link to download the csv
     link = f'<a href="data:file/csv;base64,{b64}" download="{fileName + ".csv"}"> {label}</a>'
     # Display the link in streamlit

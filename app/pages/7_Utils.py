@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from pynir.Calibration import sampleSplit_KS
 from pynir.utils import simulateNIR
 from tools.display import plotSPC, plotRef_reg, plotRef_clf, pltPCAscores_2d, plotRegressionCoefficients, plotPrediction_reg
-from tools.dataManipulation import download_csv, download_csv_md, get_Tablet, get_PlantLeaf, get_Corn, predict_reg
+from tools.dataManipulation import download_csv, download_csv, get_Tablet, get_PlantLeaf, get_Corn, predict_reg
 from sklearn.model_selection import train_test_split
 
 # Simulate NIR Data
@@ -20,8 +20,15 @@ def simulate_nir_data():
     noise_level = st.slider('Noise level (×10^-5)', 0.00, 10.00, 1.00)
     seeds = st.slider('Random seeds', 0, 10000, 0)
     ref_type = st.slider('Reference value type', 1, min([5, round(n_samples/2)]), 1,
-                         help="""1 represents reference values resampled from continuous region,
-                         integer larger than 1 represents reference values belonging to the corresponding number of classes.""")
+                         help="""
+                         The `Reference value type` parameter specifies the type
+                         of reference values to use in the model. If it is 1,
+                         the reference values are resamplesd from a continuous
+                         region and used for regression. If it is an integer
+                         greater than 1, the reference values belong to the
+                         corresponding number of classes and are used for binary
+                         or multiple classification.
+                         """)
 
     X, y, wv = simulateNIR(nSample=n_samples,
                            n_components=n_components,
@@ -46,9 +53,15 @@ def simulate_nir_data():
 # prediction with regression model
 def predict_with_regression_model():
     """
-    Allows the user to upload a regression model and spectra to be predicted, and generates predictions using the model.
+    Allows the user to upload a regression model and spectra to be predicted,
+    and generates predictions using the model.
 
-    The function prompts the user to upload a regression model and spectra to be predicted in CSV format. If both files are uploaded successfully, the function generates predictions using the regression model and displays the predicted reference values in a DataFrame. The user can also upload reference values for the spectra to be predicted and compare them to the predicted values using a plot.
+    The function prompts the user to upload a regression model and spectra to be
+    predicted in CSV format. If both files are uploaded successfully, the
+    function generates predictions using the regression model and displays the
+    predicted reference values in a DataFrame. The user can also upload
+    reference values for the spectra to be predicted and compare them to the
+    predicted values using a plot.
 
     Returns:
         None
@@ -120,8 +133,9 @@ def split_sample_set():
             st.write(testIdx)
     elif split_method == "KS":
         st.markdown("""
-        The KS algorithms aim to select a subset of samples whose spectra are as different from each other as possible.
-        Therefore, your spectra should be uploaded as a CSV file with samples in rows and wavenumber in columns.
+        The KS algorithms aim to select a subset of samples whose spectra are as
+        different from each other as possible. Therefore, your spectra should be
+        uploaded as a CSV file with samples in rows and wavenumber in columns.
         """)
         uploaded_file = st.file_uploader("Upload your spectra here", "csv")
         if uploaded_file is not None:
@@ -152,8 +166,7 @@ def split_sample_set():
                 st.write(testIdx)
 
     if "trainIdx" in locals() and "testIdx" in locals():
-        st.markdown(
-            "## Apply the split to your spectral or reference value data: ")
+        st.markdown("## Apply the split to your spectral or reference value data: ")
         uploaded_file = st.file_uploader("Upload file to be split here", "csv")
         if uploaded_file is not None:
             data = pd.read_csv(uploaded_file, index_col=0)
@@ -175,10 +188,12 @@ def split_sample_set():
 
 
 def convert_wn_to_wl():
-    """Convert the wavenumber in a spectral file with WaveNumber (cm-1) unit to Wavelength (nm)."""
+    """Convert the wavenumber in a spectral file with WaveNumber (cm-1) unit to
+    Wavelength (nm)."""
     st.markdown("""
-    Convert the wavenumber in a spectral file with WaveNumber (cm-1) unit to Wavelength (nm).
-    Before conversion, be sure that the first row of your spectral file is the wavenumber with the unit of cm^-^1.
+    Convert the wavenumber in a spectral file with WaveNumber (cm-1) unit to
+    Wavelength (nm). Before conversion, be sure that the first row of your
+    spectral file is the wavenumber with the unit of cm^-^1.
     """)
     uploaded_file = st.file_uploader("Upload your spectra here", "csv")
     if uploaded_file is not None:
@@ -218,20 +233,29 @@ def transpose_data():
 def read_spectra_from_files():
     """Read spectral data from raw files obtained from a spectrometer."""
     st.markdown("""
-    This function allows you to read spectral data from raw files obtained from a spectrometer.
-    Please note that we currently only support spectral files from DMD spectrometers manufactured by companies such as http://www.ias-nir.com/.
+    This function allows you to read spectral data from raw files obtained from
+    a spectrometer. Please note that we currently only support spectral files
+    from DMD spectrometers manufactured by companies such as
+    http://www.ias-nir.com/.
 
-    To use this function, simply upload your spectral files in CSV format using the file uploader. 
-    The function will then read the spectral data from the files and display it in a pandas DataFrame.
-    You can choose to average the spectra of replicates by selecting the "Average the spectra of replicates" checkbox.
+    To use this function, simply upload your spectral files in CSV format using
+    the file uploader. The function will then read the spectral data from the
+    files and display it in a pandas DataFrame. You can choose to average the
+    spectra of replicates by selecting the "Average the spectra of replicates"
+    checkbox.
 
-    Once the spectral data is displayed, you can download it as a CSV file using the "Download spectra" button.
+    Once the spectral data is displayed, you can download it as a CSV file using
+    the "Download spectra" button.
     """)
 
     # averge the spectra of replicates with file name ended with "_1.csv", "_2.csv", "_3.csv", etc.
 
-    mean_replicates = st.checkbox("Average the spectra of replicates",
-                                  help="Average the spectra of replicates with file name ended with '_1.csv', '_2.csv', '_3.csv', etc.")
+    mean_replicates = st.checkbox(
+        "Average the spectra of replicates",
+        help="""
+            Average the spectra of replicates with file name ended with
+            '_1.csv', '_2.csv', '_3.csv', etc.
+        """)
 
     uploaded_files = st.file_uploader(
         "Upload your spectra here", "csv", accept_multiple_files=True)
@@ -262,11 +286,14 @@ def read_spectra_from_files():
 def example_dataset():
     """Download example datasets for NIR calibration."""
     st.markdown("""
-    This function enables you to download example datasets for NIR calibration, including the Corn dataset, Plant Leaf dataset, and Tablet dataset. 
-    These datasets are described in detail in the [paper](https://www.sciencedirect.com/science/article/abs/pii/S1386142523006637?via%3Dihub).
+    This function enables you to download example datasets for NIR calibration,
+    including the Corn dataset, Plant Leaf dataset, and Tablet dataset. These
+    datasets are described in detail in the
+    [paper](https://www.sciencedirect.com/science/article/abs/pii/S1386142523006637?via%3Dihub).
 
-    Please note that these datasets are divided into different sets based on the experimental description in our papers,
-    and are designed to enable you to reproduce our results. 
+    Please note that these datasets are divided into different sets based on the
+    experimental description in our papers, and are designed to enable you to
+    reproduce our results. 
     """)
     dataset_sel = st.radio("Select the dataset you want to download",
                            ("Corn dataset", "Plant Leaf dataset", "Tablet dataset"))
@@ -294,32 +321,32 @@ def example_dataset():
 
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         with col1:
-            download_csv_md(X1_cal,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X1_cal,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
                             fileName="X1_m5_cal",  label="X-calibration-master")
-            download_csv_md(X1_std,  index=True, columns=True,  index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X1_std,  index=True, columns=True,  index_label="Sample Name\\Wavelength (nm)",
                             fileName="X1_m5_std", label="X-standard-master")
-            download_csv_md(X1_test,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X1_test,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
                             fileName="X1_m5_test",  label="X-test-master")
         with col2:
-            download_csv_md(X2_cal,  index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X2_cal,  index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
                             fileName="X2_mp5_cal", label="X-calibration-slave1")
-            download_csv_md(X2_std,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X2_std,  index=True,  columns=True,  index_label="Sample Name\\Wavelength (nm)",
                             fileName="X2_mp5_std",  label="X-standard-slave1")
-            download_csv_md(X2_test, index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X2_test, index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
                             fileName="X2_mp5_test",  label="X-test-slave1")
         with col3:
-            download_csv_md(X3_cal, index=True,  columns=True, index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X3_cal, index=True,  columns=True, index_label="Sample Name\\Wavelength (nm)",
                             fileName="X3_mp6_cal",  label="X-calibration-slave2")
-            download_csv_md(X3_std, index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X3_std, index=True, columns=True, index_label="Sample Name\\Wavelength (nm)",
                             fileName="X3_mp6_std", label="X-standard-slave2")
-            download_csv_md(X3_test, index=True,  columns=True, index_label="Sample Name\\Wavelength (nm)",
+            download_csv(X3_test, index=True,  columns=True, index_label="Sample Name\\Wavelength (nm)",
                             fileName="X3_mp6_test",  label="X-test-slave2")
         with col4:
-            download_csv_md(ycal, index=True, columns=True, index_label="Sample Name",
+            download_csv(ycal, index=True, columns=True, index_label="Sample Name",
                             fileName="ycal", label="y-calibration")
-            download_csv_md(y_std,  index=True, columns=True, index_label="Sample Name",
+            download_csv(y_std,  index=True, scolumns=True, index_label="Sample Name",
                             fileName="y_std", label="y-standard")
-            download_csv_md(y_test, index=True, columns=True, index_label="Sample Name",
+            download_csv(y_test, index=True, columns=True, index_label="Sample Name",
                             fileName="y_test",  label="y-test")
         st.markdown(
             " The master, slave1 and slave 2 refer to the three spectrometers of m5, mp5 and mp6, respectively.")
@@ -343,25 +370,25 @@ def example_dataset():
 
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            download_csv_md(X1_cal, index=True, columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X1_cal, index=True, columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X1_master_cal", label="X-calibration-master")
-            download_csv_md(X1_std,   index=True,  columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X1_std,   index=True,  columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X1_master_std",  label="X-standard-master")
-            download_csv_md(X1_test,  index=True, columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X1_test,  index=True, columns=True,  index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X1_master_test", label="X-test-master")
         with col2:
-            download_csv_md(X2_cal,   index=True,  columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X2_cal,   index=True,  columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X2_slave_cal", label="X-calibration-slave")
-            download_csv_md(X2_std,  index=True, columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X2_std,  index=True, columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X2_slave_std", label="X-standard-slave")
-            download_csv_md(X2_test, index=True,  columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
+            download_csv(X2_test, index=True,  columns=True, index_label="Sample Name\\WaveNumber (cm-1)",
                             fileName="X2_slave_test", label="X-test-slave")
         with col3:
-            download_csv_md(ycal, index=True, columns=True, index_label="Sample Name",
+            download_csv(ycal, index=True, columns=True, index_label="Sample Name",
                             fileName="ycal", label="y-calibration")
-            download_csv_md(y_std, index=True, columns=True, index_label="Sample Name",
+            download_csv(y_std, index=True, columns=True, index_label="Sample Name",
                             fileName="y_std", label="y-standard")
-            download_csv_md(y_test, index=True,  columns=True, index_label="Sample Name",
+            download_csv(y_test, index=True,  columns=True, index_label="Sample Name",
                             fileName="y_test", label="y-test")
         st.markdown(
             " The master and slave refer to data measured on samples ground to 40 and 60 mesh, respectively.")
@@ -385,25 +412,25 @@ def example_dataset():
 
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            download_csv_md(X1_cal, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X1_cal, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
                             fileName="X1_master_cal", label="X-calibration-master")
-            download_csv_md(X1_std, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X1_std, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
                             fileName="X1_master_std", label="X-standard-master")
-            download_csv_md(X1_test, index=True, columns=True,  index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X1_test, index=True, columns=True,  index_label="Sample Name\\WaveLength (nm)",
                             fileName="X1_master_test",  label="X-test-master")
         with col2:
-            download_csv_md(X2_cal, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X2_cal, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
                             fileName="X2_slave_cal", label="X-calibration-slave")
-            download_csv_md(X2_std, index=True,  columns=True, index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X2_std, index=True,  columns=True, index_label="Sample Name\\WaveLength (nm)",
                             fileName="X2_slave_std", label="X-standard-slave")
-            download_csv_md(X2_test, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
+            download_csv(X2_test, index=True, columns=True, index_label="Sample Name\\WaveLength (nm)",
                             fileName="X2_slave_test", label="X-test-slave")
         with col3:
-            download_csv_md(ycal, index=True, columns=True, index_label="Sample Name",
+            download_csv(ycal, index=True, columns=True, index_label="Sample Name",
                             fileName="ycal", label="y-calibration")
-            download_csv_md(y_std, index=True, columns=True, index_label="Sample Name",
+            download_csv(y_std, index=True, columns=True, index_label="Sample Name",
                             fileName="y_std", label="y-standard")
-            download_csv_md(y_test, index=True, columns=True, index_label="Sample Name",
+            download_csv(y_test, index=True, columns=True, index_label="Sample Name",
                             fileName="y_test", label="y-test")
 
         st.markdown(
@@ -453,4 +480,7 @@ if function_sel == "Example dataset":
     example_dataset()
 
 if function_sel == "Others":
-    st.write("Other functions coming soon..")
+    st.write("""Additional functions will be added to this site in the near
+             future. If you have any specific requirements or suggestions,
+             please submit an issue on the [GitHub repository](https://github.com/JinZhangLab/nir_online/issues). 
+             We appreciate your feedback and will do our best to address your needs.""")

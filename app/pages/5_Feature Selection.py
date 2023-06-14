@@ -6,7 +6,7 @@ from pynir.utils import simulateNIR
 from pynir.Calibration import pls
 from pynir.FeatureSelection import MCUVE, RT, VC
 from tools.display import plotSPC, plotRef_reg, plotVariableImportance, plotVariableSelection
-from tools.dataManipulation import download_csv_md
+from tools.dataManipulation import download_csv
 
 
 @st.cache_data
@@ -151,4 +151,4 @@ if "FS" in locals():
 
         X_new_fs = X_new.iloc[:, FS.loc[fs_method].to_numpy()]
 
-        download_csv_md(X_new_fs, fileName="X_fs", label="Download the spectra after feature selection")
+        download_csv(X_new_fs, fileName="X_fs", label="Download the spectra after feature selection")

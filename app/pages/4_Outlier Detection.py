@@ -6,7 +6,7 @@ from pynir.OutlierDetection import outlierDetection_PLS
 from tools.display import plotSPC, plotRef_reg
 
 import matplotlib.pyplot as plt
-from tools.dataManipulation import download_csv_md, download_img
+from tools.dataManipulation import download_csv, download_img
 
 
 # Page content
@@ -69,5 +69,5 @@ if "X" in locals() and "y" in locals():
         st.pyplot(fig)
     with tab2:
         download_img(fig, fileName="Outlier detection results", label="Download figure")
-        download_csv_md(pd.DataFrame(data={"Hotelling T2": Tsq, "Q residuals": Q, "Outlier": idxOutlier}),
+        download_csv(pd.DataFrame(data={"Hotelling T2": Tsq, "Q residuals": Q, "Outlier": idxOutlier}),
                         "Outlier detection results", label="Download results")
