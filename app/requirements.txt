@@ -1,1 +1,2 @@
 pynir>=0.4
+streamlit

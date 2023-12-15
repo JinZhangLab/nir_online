@@ -17,7 +17,7 @@ def simulate_nir_data():
     st.markdown("### Set simulation parameters")
     n_components = st.slider('Number of components', 2, 20, 10)
     n_samples = st.slider('Number of samples', 10, 2000, 100)
-    noise_level = st.slider('Noise level (×10^-5)', 0.00, 10.00, 1.00)
+    noise_level = st.slider('Noise level (*10^-5)', 0.00, 10.00, 1.00)
     seeds = st.slider('Random seeds', 0, 10000, 0)
     ref_type = st.slider('Reference value type', 1, min([5, round(n_samples/2)]), 1,
                          help="""
@@ -257,13 +257,30 @@ def read_spectra_from_files():
             '_1.csv', '_2.csv', '_3.csv', etc.
         """)
 
+    with st.expander("Extra settings for spectral reader", expanded=False):
+        num_skip_rows = st.number_input("Number of rows to skip", value=18)
+        num_index_col = st.number_input("Which column in csv file to use as index", value=0)
+        num_spec_col = st.number_input("Which column in dataframe to use as spectra", value=0)
+
+        delimiter_dict = {"Comma (,)": ",",
+                          "Semicolon (;)": ";",
+                          "Tab": "\t",
+                          "Space": " ",
+                          "Colon (:)": ":",
+                          "Vertical bar (|)": "|",
+                          "None": None}
+        delimiter = st.selectbox("Delimiter", delimiter_dict.keys(), index=0)
+        delimiter = delimiter_dict[delimiter]
+
     uploaded_files = st.file_uploader(
         "Upload your spectra here", "csv", accept_multiple_files=True)
     if uploaded_files:
         data = pd.DataFrame()
         for file in uploaded_files:
-            spci = pd.read_csv(file, index_col=0, skiprows=18)
-            spci = spci.iloc[:, 0]
+            spci = pd.read_csv(file, index_col=num_index_col, skiprows=num_skip_rows, delimiter=delimiter)
+            spci.dropna(axis=1, how="all", inplace=True)
+            spci.dropna(axis=0, how="all", inplace=True)
+            spci = spci.iloc[:, num_spec_col]
             data = pd.concat([data, pd.DataFrame(
                 data=spci.to_numpy(), index=spci.index, columns=[file.name]).transpose()])
 
