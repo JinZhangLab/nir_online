@@ -7,9 +7,20 @@ This is a web-based tool for performing calirabtion (i.e., regression, classicia
 
 You can use this tool online at <https://nir.chemoinfolab.com> or this alternative site <https://nironline.streamlit.app>, or you can deploy it yourself.
 
-## Deployment
+## Usage
 
-### Docker (recommand)
+### Docker compose (recommand)
+```bash
+git clone https://github.com/JinZhangLab/nir_online.git
+cd ./nir_online
+
+docker-compose up -d
+```
+
+Then, you can use the nir online tool by opening it in your browser at <http://localhost:8501>
+
+
+### Docker 
 
 You can deploy the online tools with docker on your local machine by runing the following commands:
 
@@ -24,7 +35,8 @@ docker run -p 8501:8501 nir_online
 
 Then, you can use the nir online tool by opening it in your browser at <http://localhost:8501>
 
-### Local machine
+
+### Python environment
 
 ``` bash
 git clone https://github.com/JinZhangLab/nir_online.git
@@ -37,9 +49,12 @@ streamlit run Index.py
 
 Then, you can use the nir online tool by opening it in your browser at <http://localhost:8501>
 
-### Streamlit clould
 
-Fork the repository, and then fullow the [Instructions](https://streamlit.io/cloud) for deploying this tool on Streamlit Cloud.
+### Use in our demostrative server
+
+You can also use the nir online tool in our demostrative server at <https://nir.chemoinfolab.com>.
+
+
 
 ## Contributing
 
