@@ -62,15 +62,15 @@ elif dataSource == "Upload data manually":
 
 if "X" in list(locals().keys()):
     if method == "CWT":
-        ppModel = dataProcessing_cwt(X)
+        ppModel = dataProcessing_cwt(X.to_numpy())
     elif method == "SNV":
-        ppModel = dataProcessing_snv(X)
+        ppModel = dataProcessing_snv(X.to_numpy())
     elif method == "MSC":
-        ppModel = dataProcessing_msc(X)
+        ppModel = dataProcessing_msc(X.to_numpy())
     elif method == "SG_Smooth":
-        ppModel = dataProcessing_sg_smooth(X)
+        ppModel = dataProcessing_sg_smooth(X.to_numpy())
     elif method == "SG_Derivate":
-        ppModel = dataProcessing_sg_derivate(X)
+        ppModel = dataProcessing_sg_derivate(X.to_numpy())
 
     col1, col2 = st.columns(2)
     with col1:
